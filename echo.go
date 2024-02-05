@@ -53,7 +53,7 @@ type echoSwagger struct {
 	routes []*echoRoute
 }
 
-func newSwaggerEcho() Echo {
+func newEcho() Echo {
 	return &echoSwagger{
 		e: echo.New(),
 	}

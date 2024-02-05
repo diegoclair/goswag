@@ -72,12 +72,12 @@ type Swagger interface {
 	HeaderParam(name, description, dataType string, required bool) Swagger
 }
 
-// NewSwaggerEcho returns the interface that wraps the basic Echo methods and add the swagger methods
-func NewSwaggerEcho() Echo {
-	return newSwaggerEcho()
+// NewEcho returns the interface that wraps the basic Echo methods and add the swagger methods
+func NewEcho() Echo {
+	return newEcho()
 }
 
-// NewSwaggerGin returns the interface that wraps the basic Gin methods and add the swagger methods
-// func NewSwaggerGin() Gin {
-// 	return newSwaggerGin()
+// NewGin returns the interface that wraps the basic Gin methods and add the swagger methods
+// func NewGin() Gin {
+// 	return newGin()
 // }
