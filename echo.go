@@ -367,12 +367,12 @@ func (r *echoRoute) Tags(value ...string) Swagger {
 	return r
 }
 
-func (r *echoRoute) Accept(value ...string) Swagger {
+func (r *echoRoute) Accepts(value ...string) Swagger {
 	r.accepts = value
 	return r
 }
 
-func (r *echoRoute) Produce(value ...string) Swagger {
+func (r *echoRoute) Produces(value ...string) Swagger {
 	r.produces = value
 	return r
 }

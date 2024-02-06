@@ -11,6 +11,8 @@ import (
 	"github.com/ettle/strcase"
 )
 
+const fileName = "goswag.go"
+
 type ReturnType struct {
 	StatusCode int
 	Body       interface{}
@@ -53,7 +55,7 @@ func generateSwagger(routes []route, groups []group) {
 		fullFileContent  = &strings.Builder{}
 	)
 
-	log.Printf("Generating goswag.go file...")
+	log.Printf("Generating %s file...", fileName)
 
 	if routes != nil {
 		packagesToImport = append(packagesToImport, writeRoutes("", routes, fullFileContent)...)
@@ -63,10 +65,11 @@ func generateSwagger(routes []route, groups []group) {
 		packagesToImport = append(packagesToImport, writeGroup(groups, fullFileContent)...)
 	}
 
-	f, err := os.Create("./goswag.go")
+	f, err := os.Create(fmt.Sprintf("./%s", fileName))
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer f.Close()
 
 	fmt.Fprintf(f, "package main\n\n")
 
@@ -82,9 +85,7 @@ func generateSwagger(routes []route, groups []group) {
 
 	fmt.Fprintf(f, "%s", fullFileContent.String())
 
-	defer f.Close()
-
-	log.Printf("goswag.go file generated successfully!")
+	log.Printf("%s file generated successfully!", fileName)
 }
 
 func writeRoutes(groupName string, routes []route, s *strings.Builder) (packagesToImport []string) {
@@ -161,12 +162,12 @@ func writeReturns(returns []ReturnType, s *strings.Builder) (packagesToImport []
 			pkg := strings.Split(correctlyResponseType, ".")[0]
 			fullPathPackage := beforePkg + "/" + pkg
 
-			s.WriteString(fmt.Sprintf("// %s %d {object} %s\n", respType, data.StatusCode, correctlyResponseType))
+			s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, correctlyResponseType))
 
-			return append(packagesToImport, fullPathPackage)
+			packagesToImport = append(packagesToImport, fullPathPackage)
+		} else {
+			s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, getStructAndPackageName(data.Body)))
 		}
-
-		s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, getStructAndPackageName(data.Body)))
 
 		if data.OverrideStructFields != nil {
 			i := 0
@@ -189,7 +190,7 @@ func writeReturns(returns []ReturnType, s *strings.Builder) (packagesToImport []
 
 	}
 
-	return nil
+	return packagesToImport
 }
 
 func writeGroup(groups []group, s *strings.Builder) (packagesToImport []string) {

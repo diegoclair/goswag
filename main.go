@@ -20,12 +20,12 @@ type Swagger interface {
 	// The default value is json.
 	// If you want to add a different value, check the swag documentation to know what are the possible values.
 	// swag docs: https://github.com/swaggo/swag#mime-types
-	Accept(accept ...string) Swagger
+	Accepts(accept ...string) Swagger
 
 	// The default value is json.
 	// If you want to add a different value, check the swag documentation to know what are the possible values.
 	// swag docs: https://github.com/swaggo/swag#mime-types
-	Produce(produce ...string) Swagger
+	Produces(produce ...string) Swagger
 
 	// Read is used to define the request body of the route.
 	Read(data interface{}) Swagger
@@ -39,7 +39,7 @@ type Swagger interface {
 	//
 	//	type ResponseBody struct {
 	//		ID   string `json:"id"`
-	//		Data interface `json:"data"`
+	//		Data interface{} `json:"data"`
 	//	}
 	//
 	// the swagger will be generated with the data field as a string field.
@@ -48,8 +48,6 @@ type Swagger interface {
 	// where the SomeStruct{} is the struct that you want to use to override the data field.
 	//
 	// It accepts generic structs as well, but only for the first struct, if you have more deep generic fields, it may not work.
-	//
-	// ATTENTION: The OverrideStructFields don't work with GenericStructs yet.
 	//
 	// Example using generic struct:
 	//
