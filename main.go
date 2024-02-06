@@ -45,7 +45,7 @@ type Swagger interface {
 	// the swagger will be generated with the data field as a string field.
 	// if you want to override the data field and specify that it is a struct for example, you can do this:
 	// OverrideStructFields: map[string]interface{}{"data": SomeStruct{}}
-	// where the SomeStruct{} is the struct that you want to use to override the data field.
+	// where the SomeStruct{} is the struct that you want to use to override the "data" field.
 	//
 	// It accepts generic structs as well, but only for the first struct, if you have more deep generic fields, it may not work.
 	//
