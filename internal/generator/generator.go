@@ -1,4 +1,4 @@
-package goswag
+package generator
 
 import (
 	"fmt"
@@ -8,48 +8,42 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/diegoclair/goswag/models"
 	"github.com/ettle/strcase"
 )
 
 const fileName = "goswag.go"
 
-type ReturnType struct {
-	StatusCode int
-	Body       interface{}
-	// example: map[jsonFieldName]fieldType
-	OverrideStructFields map[string]interface{}
+type Param struct {
+	Name        string
+	Description string
+	ParamType   string
+	Required    bool
 }
 
-type param struct {
-	name        string
-	description string
-	paramType   string
-	required    bool
+type Route struct {
+	Path         string
+	Method       string
+	FuncName     string // it will be used to generate the function on the goswag.go file
+	PathParams   []string
+	Summary      string
+	Description  string
+	Tags         []string
+	Accepts      []string
+	Produces     []string
+	Reads        interface{}
+	Returns      []models.ReturnType // example: map[statusCode]responseBody
+	QueryParams  []Param
+	HeaderParams []Param
 }
 
-type route struct {
-	path         string
-	method       string
-	funcName     string // it will be used to generate the function on the goswag.go file
-	pathParams   []string
-	summary      string
-	description  string
-	tags         []string
-	accepts      []string
-	produces     []string
-	reads        interface{}
-	returns      []ReturnType // example: map[statusCode]responseBody
-	queryParams  []param
-	headerParams []param
+type Group struct {
+	GroupName string
+	Routes    []Route
+	Groups    []Group
 }
 
-type group struct {
-	groupName string
-	routes    []route
-	groups    []group
-}
-
-func generateSwagger(routes []route, groups []group) {
+func GenerateSwagger(routes []Route, groups []Group) {
 	var (
 		packagesToImport []string
 		fullFileContent  = &strings.Builder{}
@@ -88,53 +82,53 @@ func generateSwagger(routes []route, groups []group) {
 	log.Printf("%s file generated successfully!", fileName)
 }
 
-func writeRoutes(groupName string, routes []route, s *strings.Builder) (packagesToImport []string) {
+func writeRoutes(groupName string, routes []Route, s *strings.Builder) (packagesToImport []string) {
 	for _, r := range routes {
-		addLineIfNotEmpty(s, r.summary, "// @Summary %s\n")
-		addTextIfNotEmptyOrDefault(s, r.summary, "// @Description %s\n", r.description)
+		addLineIfNotEmpty(s, r.Summary, "// @Summary %s\n")
+		addTextIfNotEmptyOrDefault(s, r.Summary, "// @Description %s\n", r.Description)
 
-		if len(r.tags) > 0 {
-			s.WriteString(fmt.Sprintf("// @Tags %s\n", strings.Join(r.tags, ",")))
+		if len(r.Tags) > 0 {
+			s.WriteString(fmt.Sprintf("// @Tags %s\n", strings.Join(r.Tags, ",")))
 		} else if groupName != "" {
 			s.WriteString(fmt.Sprintf("// @Tags %s\n", groupName))
 		}
 
-		addTextIfNotEmptyOrDefault(s, "json", "// @Accept %s\n", r.accepts...)
-		addTextIfNotEmptyOrDefault(s, "json", "// @Produce %s\n", r.produces...)
+		addTextIfNotEmptyOrDefault(s, "json", "// @Accept %s\n", r.Accepts...)
+		addTextIfNotEmptyOrDefault(s, "json", "// @Produce %s\n", r.Produces...)
 
-		if r.reads != nil {
-			s.WriteString(fmt.Sprintf("// @Param request body %s true \"Request\"\n", getStructAndPackageName(r.reads)))
+		if r.Reads != nil {
+			s.WriteString(fmt.Sprintf("// @Param request body %s true \"Request\"\n", getStructAndPackageName(r.Reads)))
 		}
 
-		for _, param := range r.pathParams {
+		for _, param := range r.PathParams {
 			s.WriteString(fmt.Sprintf("// @Param %s path string true \"%s\" \n", param, strcase.ToCamel(param)))
 		}
 
-		for _, param := range r.queryParams {
+		for _, param := range r.QueryParams {
 			s.WriteString(fmt.Sprintf("// @Param %s query %s %t \"%s\"\n",
-				param.name, param.paramType, param.required, param.description),
+				param.Name, param.ParamType, param.Required, param.Description),
 			)
 		}
 
-		for _, param := range r.headerParams {
+		for _, param := range r.HeaderParams {
 			s.WriteString(fmt.Sprintf("// @Param %s header %s %t \"%s\"\n",
-				param.name, param.paramType, param.required, param.description),
+				param.Name, param.ParamType, param.Required, param.Description),
 			)
 		}
 
-		if r.returns != nil {
-			packagesToImport = append(packagesToImport, writeReturns(r.returns, s)...)
+		if r.Returns != nil {
+			packagesToImport = append(packagesToImport, writeReturns(r.Returns, s)...)
 		}
 
-		s.WriteString(fmt.Sprintf("// @Router %s [%s]\n", r.path, strings.ToLower(r.method)))
+		s.WriteString(fmt.Sprintf("// @Router %s [%s]\n", r.Path, strings.ToLower(r.Method)))
 
-		s.WriteString(fmt.Sprintf("func %s() {}\n\n", r.funcName))
+		s.WriteString(fmt.Sprintf("func %s() {}\n\n", r.FuncName))
 	}
 
 	return packagesToImport
 }
 
-func writeReturns(returns []ReturnType, s *strings.Builder) (packagesToImport []string) {
+func writeReturns(returns []models.ReturnType, s *strings.Builder) (packagesToImport []string) {
 	for _, data := range returns {
 		respType := "@Success"
 		firstDigit := data.StatusCode / 100
@@ -193,31 +187,25 @@ func writeReturns(returns []ReturnType, s *strings.Builder) (packagesToImport []
 	return packagesToImport
 }
 
-func writeGroup(groups []group, s *strings.Builder) (packagesToImport []string) {
+func writeGroup(groups []Group, s *strings.Builder) (packagesToImport []string) {
 	for _, g := range groups {
-		res := writeRoutes(g.groupName, g.routes, s)
-		if res != nil {
-			packagesToImport = append(packagesToImport, res...)
-		}
+		packagesToImport = append(packagesToImport, writeRoutes(g.GroupName, g.Routes, s)...)
 
-		if g.groups != nil {
-			res := writeGroup(g.groups, s)
-			if res != nil {
-				packagesToImport = append(packagesToImport, res...)
-			}
+		if g.Groups != nil {
+			packagesToImport = append(packagesToImport, writeGroup(g.Groups, s)...)
 		}
 	}
 
 	return packagesToImport
 }
 
-func getStructAndPackageName(body interface{}) string {
+func getStructAndPackageName(body any) string {
 	return reflect.TypeOf(body).String()
 }
 
 func addTextIfNotEmptyOrDefault(s *strings.Builder, defaultText, format string, text ...string) {
 	if text != nil {
-		if len(text) == 1 && strings.TrimSpace(text[0]) != "" {
+		if len(text) >= 1 && strings.TrimSpace(text[0]) != "" {
 			s.WriteString(fmt.Sprintf(format, strings.Join(text, ",")))
 			return
 		}
