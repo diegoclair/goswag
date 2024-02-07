@@ -28,6 +28,10 @@ type EchoRouter interface {
 	// OPTIONS registers a new OPTIONS route for a path with matching handler in the
 	// router with optional route-level middleware.
 	OPTIONS(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) Swagger
+
+	// HEAD registers a new HEAD route for a path with matching handler in the router
+	// with optional route-level middleware.
+	HEAD(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) Swagger
 }
 
 type EchoGroup interface {

@@ -2,7 +2,10 @@ package goswag
 
 import (
 	echoSwagger "github.com/diegoclair/goswag/internal/frameworks/echo"
+	ginSwagger "github.com/diegoclair/goswag/internal/frameworks/gin"
 	"github.com/diegoclair/goswag/models"
+	"github.com/gin-gonic/gin"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -24,7 +27,14 @@ func NewEcho() Echo {
 	return echoSwagger.NewEcho()
 }
 
+type Gin interface {
+	models.GinRouter
+	models.GinGroup
+	GenerateSwagger()
+	Gin() *gin.Engine
+}
+
 // NewGin returns the interface that wraps the basic Gin methods and add the swagger methods
-// func NewGin() Gin {
-// 	return newGin()
-// }
+func NewGin(g *gin.Engine) Gin {
+	return ginSwagger.NewGin(g)
+}

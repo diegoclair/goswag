@@ -19,4 +19,4 @@
 ### TODO:
 - Create ReadmeDocs
 - Unit Tests
-- Add Gin framework
+- Gin does not implement the method Match or Any from gin, because there are no way (yet) to define the same (summary,responses,bodies) for all methods
