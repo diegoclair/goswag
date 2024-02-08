@@ -20,6 +20,7 @@ func getFuncName(handlers ...gin.HandlerFunc) string {
 	fullFuncName := runtime.FuncForPC(reflect.ValueOf(lastHandler).Pointer()).Name()
 	funcNameSplit := strings.Split(fullFuncName, ".")
 	funcName := funcNameSplit[len(funcNameSplit)-1]
+	funcName = strings.TrimSuffix(funcName, "-fm")
 
 	return funcName
 }

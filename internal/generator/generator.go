@@ -93,7 +93,11 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder) (packages
 			s.WriteString(fmt.Sprintf("// @Tags %s\n", groupName))
 		}
 
-		addTextIfNotEmptyOrDefault(s, "json", "// @Accept %s\n", r.Accepts...)
+		if r.Method == http.MethodPost || r.Method == http.MethodPut {
+			// methods like get or delete do not have a request body
+			addTextIfNotEmptyOrDefault(s, "json", "// @Accept %s\n", r.Accepts...)
+		}
+
 		addTextIfNotEmptyOrDefault(s, "json", "// @Produce %s\n", r.Produces...)
 
 		if r.Reads != nil {
