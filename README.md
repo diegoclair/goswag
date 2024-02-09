@@ -1,4 +1,5 @@
 # goswag
+To help you auto generate swagger for your golang code.
 
 <p align="center">
     <a href="https://github.com/diegoclair/goswag/contributors" alt="Contributors">
