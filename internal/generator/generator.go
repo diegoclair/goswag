@@ -2,6 +2,7 @@ package generator
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -65,21 +66,25 @@ func GenerateSwagger(routes []Route, groups []Group) {
 	}
 	defer f.Close()
 
-	fmt.Fprintf(f, "package main\n\n")
-
-	if len(packagesToImport) > 0 {
-		fmt.Fprintf(f, "import (\n")
-
-		for _, pkg := range packagesToImport {
-			fmt.Fprintf(f, "\t_ \"%s\"\n", pkg)
-		}
-
-		fmt.Fprintf(f, ")\n\n")
-	}
-
-	fmt.Fprintf(f, "%s", fullFileContent.String())
+	writeFileContent(f, fullFileContent.String(), packagesToImport)
 
 	log.Printf("%s file generated successfully!", fileName)
+}
+
+func writeFileContent(file io.Writer, content string, packagesToImport []string) {
+	fmt.Fprintf(file, "package main\n\n")
+
+	if len(packagesToImport) > 0 {
+		fmt.Fprintf(file, "import (\n")
+
+		for _, pkg := range packagesToImport {
+			fmt.Fprintf(file, "\t_ \"%s\"\n", pkg)
+		}
+
+		fmt.Fprintf(file, ")\n\n")
+	}
+
+	fmt.Fprintf(file, "%s", content)
 }
 
 func writeRoutes(groupName string, routes []Route, s *strings.Builder) (packagesToImport []string) {
@@ -98,7 +103,10 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder) (packages
 			addTextIfNotEmptyOrDefault(s, "json", "// @Accept %s\n", r.Accepts...)
 		}
 
-		addTextIfNotEmptyOrDefault(s, "json", "// @Produce %s\n", r.Produces...)
+		if r.Returns != nil {
+			// only add the produces if there is a return
+			addTextIfNotEmptyOrDefault(s, "json", "// @Produce %s\n", r.Produces...)
+		}
 
 		if r.Reads != nil {
 			s.WriteString(fmt.Sprintf("// @Param request body %s true \"Request\"\n", getStructAndPackageName(r.Reads)))
@@ -124,9 +132,15 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder) (packages
 			packagesToImport = append(packagesToImport, writeReturns(r.Returns, s)...)
 		}
 
-		s.WriteString(fmt.Sprintf("// @Router %s [%s]\n", r.Path, strings.ToLower(r.Method)))
+		if r.Path != "" {
+			s.WriteString(fmt.Sprintf("// @Router %s [%s]\n", r.Path, strings.ToLower(r.Method)))
+		}
 
-		s.WriteString(fmt.Sprintf("func %s() {}\n\n", r.FuncName))
+		if r.FuncName != "" {
+			s.WriteString(fmt.Sprintf("func %s() {} //nolint:unused \n", r.FuncName))
+		}
+
+		s.WriteString("\n")
 	}
 
 	return packagesToImport
@@ -134,6 +148,10 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder) (packages
 
 func writeReturns(returns []models.ReturnType, s *strings.Builder) (packagesToImport []string) {
 	for _, data := range returns {
+		if data.StatusCode == 0 {
+			continue
+		}
+
 		respType := "@Success"
 		firstDigit := data.StatusCode / 100
 
@@ -146,45 +164,17 @@ func writeReturns(returns []models.ReturnType, s *strings.Builder) (packagesToIm
 			continue
 		}
 
-		bodyName := getStructAndPackageName(data.Body)
-		isGeneric := bodyName[len(bodyName)-1:] == "]"
+		var isGeneric bool
+		isGeneric, packagesToImport = writeIfIsGenericType(s, data, respType)
 
-		if isGeneric {
-			split := strings.Split(bodyName, "]")
-			insideGenericsFullName := split[len(split)-2]
-			lastSlashIndex := strings.LastIndex(insideGenericsFullName, "/")
-			beforePkg := insideGenericsFullName[:lastSlashIndex]
-
-			correctlyResponseType := strings.Replace(bodyName, beforePkg+"/", "", -1) // remove full package from the struct name
-
-			pkg := strings.Split(correctlyResponseType, ".")[0]
-			fullPathPackage := beforePkg + "/" + pkg
-
-			s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, correctlyResponseType))
-
-			packagesToImport = append(packagesToImport, fullPathPackage)
-		} else {
+		if !isGeneric {
+			// if it is not a generic type, we can write the response normally
 			s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, getStructAndPackageName(data.Body)))
 		}
 
-		if data.OverrideStructFields != nil {
-			i := 0
-			for key, object := range data.OverrideStructFields {
-				if i == 0 {
-					s.WriteString("{")
-				}
+		handleOverrideStructFields(s, data)
 
-				s.WriteString(fmt.Sprintf("%s=%s", key, getStructAndPackageName(object)))
-				if i == len(data.OverrideStructFields)-1 {
-					s.WriteString("}\n")
-				} else {
-					s.WriteString(",")
-				}
-				i++
-			}
-		} else {
-			s.WriteString("\n")
-		}
+		s.WriteString("\n")
 
 	}
 
@@ -203,7 +193,102 @@ func writeGroup(groups []Group, s *strings.Builder) (packagesToImport []string) 
 	return packagesToImport
 }
 
+// writeIfIsGenericType writes the correctly response type if it is a generic type
+// and returns the packages to import that need to be added to the goswag.go file to make it work
+func writeIfIsGenericType(s *strings.Builder, data models.ReturnType, respType string) (isGeneric bool, packagesToImport []string) {
+	bodyName := getStructAndPackageName(data.Body)
+
+	// generic last character here will be ']'
+	// testutil.StructGeneric[testutil.TestGeneric]
+	isGeneric = bodyName[len(bodyName)-1:] == "]"
+	if !isGeneric {
+		return
+	}
+
+	isArray := strings.Contains(bodyName, "[[]")
+	hasSlash := strings.Contains(bodyName, "/")
+
+	if isArray && hasSlash {
+		// example: testutil.StructGeneric[[]github.com/diegoclair/goswag/internal/generator/testutil.TestGeneric]
+
+		bodyRemovedLastChar := bodyName[:len(bodyName)-1] // testutil.StructGeneric[[]github.com/diegoclair/goswag/internal/generator/testutil.TestGeneric
+
+		// get the last text after '/'
+		str := strings.Split(bodyRemovedLastChar, "/")
+		insideGenericsFullName := str[len(str)-1] // testutil.TestGeneric
+
+		pkg := strings.Split(insideGenericsFullName, ".")[0] // testutil
+
+		insidePkg := strings.Split(bodyRemovedLastChar, "[[]")[1]                 // github.com/diegoclair/goswag/internal/generator/testutil.TestGeneric
+		removedType := strings.Replace(insidePkg, insideGenericsFullName, "", -1) // github.com/diegoclair/goswag/internal/generator/
+		fullInsidePkg := removedType + pkg                                        // github.com/diegoclair/goswag/internal/generator/testutil
+
+		packagesToImport = append(packagesToImport, fullInsidePkg)
+
+		correctlyResponseType := strings.Replace(bodyName, removedType, "", -1) // remove full package from the struct name
+
+		s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, correctlyResponseType))
+
+		return isGeneric, packagesToImport
+	}
+
+	if hasSlash {
+		// example: testutil.StructGeneric[github.com/diegoclair/goswag/internal/generator/testutil.TestGeneric]
+
+		bodyRemovedLastChar := bodyName[:len(bodyName)-1] // testutil.StructGeneric[github.com/diegoclair/goswag/internal/generator/testutil.TestGeneric
+
+		// get the last text after '/'
+		str := strings.Split(bodyRemovedLastChar, "/")
+		insideGenericsFullName := str[len(str)-1] // testutil.TestGeneric
+
+		pkg := strings.Split(insideGenericsFullName, ".")[0] // testutil
+
+		insidePkg := strings.Split(bodyRemovedLastChar, "[")[1]                   // github.com/diegoclair/goswag/internal/generator/testutil.TestGeneric
+		removedType := strings.Replace(insidePkg, insideGenericsFullName, "", -1) // github.com/diegoclair/goswag/internal/generator/
+		fullInsidePkg := removedType + pkg                                        // github.com/diegoclair/goswag/internal/generator/testutil
+
+		packagesToImport = append(packagesToImport, fullInsidePkg)
+
+		correctlyResponseType := strings.Replace(bodyName, removedType, "", -1) // remove full package from the struct name
+
+		s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, correctlyResponseType))
+
+		return isGeneric, packagesToImport
+	}
+
+	// example: genericStruct[int] or genericStruct[string] or genericStruct[bool]
+	// primitive types do not need to import packages
+
+	s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, bodyName))
+
+	return isGeneric, packagesToImport
+}
+
+func handleOverrideStructFields(s *strings.Builder, data models.ReturnType) {
+	if data.OverrideStructFields != nil {
+		i := 0
+		for key, object := range data.OverrideStructFields {
+			if i == 0 {
+				s.WriteString("{")
+			}
+
+			s.WriteString(fmt.Sprintf("%s=%s", key, getStructAndPackageName(object)))
+			if i == len(data.OverrideStructFields)-1 {
+				s.WriteString("}")
+			} else {
+				s.WriteString(",")
+			}
+			i++
+		}
+	}
+}
+
 func getStructAndPackageName(body any) string {
+	isPointer := reflect.TypeOf(body).Kind() == reflect.Ptr
+	if isPointer {
+		body = reflect.ValueOf(body).Elem().Interface()
+	}
+
 	return reflect.TypeOf(body).String()
 }
 
@@ -215,7 +300,9 @@ func addTextIfNotEmptyOrDefault(s *strings.Builder, defaultText, format string, 
 		}
 	}
 
-	s.WriteString(fmt.Sprintf(format, defaultText))
+	if defaultText != "" {
+		s.WriteString(fmt.Sprintf(format, defaultText))
+	}
 }
 
 func addLineIfNotEmpty(s *strings.Builder, data, format string) {
