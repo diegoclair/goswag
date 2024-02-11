@@ -2,7 +2,6 @@ package gin
 
 import (
 	"net/http"
-	"path"
 
 	"github.com/diegoclair/goswag/internal/generator"
 	"github.com/diegoclair/goswag/models"
@@ -22,7 +21,6 @@ func NewGin(g *gin.Engine) *ginSwagger {
 }
 
 func (s *ginSwagger) Gin() *gin.Engine {
-
 	return s.g
 }
 
@@ -181,7 +179,7 @@ type ginGroup struct {
 
 func (g *ginGroup) Handle(httpMethod, relativePath string, handlers ...gin.HandlerFunc) models.Swagger {
 	g.gg.Handle(httpMethod, relativePath, handlers...)
-	fullPath := path.Join(g.groupName, relativePath)
+	fullPath := getFullPath(g.groupName, relativePath)
 
 	gr := &ginRoute{
 		Route: generator.Route{
@@ -199,7 +197,7 @@ func (g *ginGroup) Handle(httpMethod, relativePath string, handlers ...gin.Handl
 
 func (g *ginGroup) POST(relativePath string, handlers ...gin.HandlerFunc) models.Swagger {
 	g.gg.POST(relativePath, handlers...)
-	fullPath := path.Join(g.groupName, relativePath)
+	fullPath := getFullPath(g.groupName, relativePath)
 
 	gr := &ginRoute{
 		Route: generator.Route{
@@ -217,7 +215,7 @@ func (g *ginGroup) POST(relativePath string, handlers ...gin.HandlerFunc) models
 
 func (g *ginGroup) GET(relativePath string, handlers ...gin.HandlerFunc) models.Swagger {
 	g.gg.GET(relativePath, handlers...)
-	fullPath := path.Join(g.groupName, relativePath)
+	fullPath := getFullPath(g.groupName, relativePath)
 
 	gr := &ginRoute{
 		Route: generator.Route{
@@ -235,7 +233,7 @@ func (g *ginGroup) GET(relativePath string, handlers ...gin.HandlerFunc) models.
 
 func (g *ginGroup) PUT(relativePath string, handlers ...gin.HandlerFunc) models.Swagger {
 	g.gg.PUT(relativePath, handlers...)
-	fullPath := path.Join(g.groupName, relativePath)
+	fullPath := getFullPath(g.groupName, relativePath)
 
 	gr := &ginRoute{
 		Route: generator.Route{
@@ -253,7 +251,7 @@ func (g *ginGroup) PUT(relativePath string, handlers ...gin.HandlerFunc) models.
 
 func (g *ginGroup) DELETE(relativePath string, handlers ...gin.HandlerFunc) models.Swagger {
 	g.gg.DELETE(relativePath, handlers...)
-	fullPath := path.Join(g.groupName, relativePath)
+	fullPath := getFullPath(g.groupName, relativePath)
 
 	gr := &ginRoute{
 		Route: generator.Route{
@@ -271,7 +269,7 @@ func (g *ginGroup) DELETE(relativePath string, handlers ...gin.HandlerFunc) mode
 
 func (g *ginGroup) PATCH(relativePath string, handlers ...gin.HandlerFunc) models.Swagger {
 	g.gg.PATCH(relativePath, handlers...)
-	fullPath := path.Join(g.groupName, relativePath)
+	fullPath := getFullPath(g.groupName, relativePath)
 
 	gr := &ginRoute{
 		Route: generator.Route{
@@ -289,7 +287,7 @@ func (g *ginGroup) PATCH(relativePath string, handlers ...gin.HandlerFunc) model
 
 func (g *ginGroup) OPTIONS(relativePath string, handlers ...gin.HandlerFunc) models.Swagger {
 	g.gg.OPTIONS(relativePath, handlers...)
-	fullPath := path.Join(g.groupName, relativePath)
+	fullPath := getFullPath(g.groupName, relativePath)
 
 	gr := &ginRoute{
 		Route: generator.Route{
@@ -307,7 +305,7 @@ func (g *ginGroup) OPTIONS(relativePath string, handlers ...gin.HandlerFunc) mod
 
 func (g *ginGroup) HEAD(relativePath string, handlers ...gin.HandlerFunc) models.Swagger {
 	g.gg.HEAD(relativePath, handlers...)
-	fullPath := path.Join(g.groupName, relativePath)
+	fullPath := getFullPath(g.groupName, relativePath)
 
 	gr := &ginRoute{
 		Route: generator.Route{

@@ -222,3 +222,40 @@ func TestToGoSwagGroup(t *testing.T) {
 		})
 	}
 }
+
+func Test_getFullPath(t *testing.T) {
+	type args struct {
+		groupName    string
+		relativePath string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "Should return the full path",
+			args: args{
+				groupName:    "group",
+				relativePath: "/user",
+			},
+			want: "group/user",
+		},
+		{
+			name: "Should return the full path with final slash",
+			args: args{
+				groupName:    "group/subgroup/",
+				relativePath: "/user/",
+			},
+			want: "group/subgroup/user/",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := getFullPath(tt.args.groupName, tt.args.relativePath); got != tt.want {
+				t.Errorf("getFullPath() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

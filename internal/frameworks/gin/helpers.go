@@ -1,6 +1,7 @@
 package gin
 
 import (
+	"path"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -65,4 +66,18 @@ func toGoSwagGroup(from []*ginGroup) []generator.Group {
 	}
 
 	return groups
+}
+
+func getFullPath(groupName, relativePath string) string {
+	if groupName == "" {
+		return relativePath
+	}
+
+	fullPath := path.Join(groupName, relativePath)
+
+	if strings.HasSuffix(relativePath, "/") {
+		fullPath += "/"
+	}
+
+	return fullPath
 }
