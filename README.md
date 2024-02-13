@@ -125,7 +125,9 @@ docs:
 Now you can run the command `make docs`.
 This will create a new `goswag.go` file inside your `goswag` folder, containing all handlers and necessary comments for the swag library to generate the Swagger files inside the `docs`folder.
 
-
+## More features
+You can add description for fields, add if they are required or not.  
+For this struct fields features and more, you can follow the [swag documentation](https://github.com/swaggo/swag) to understand how to add it.
 
 ## Contributing
 
