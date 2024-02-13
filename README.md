@@ -34,7 +34,18 @@ Goswag simplifies the process of integrating Swagger documentation generation in
 
 For instance, if your framework uses a POST method with specific parameters, Goswag mirrors these method and parameters, streamlining the integration process. This principle applies across supported frameworks, ensuring consistency and ease of use.
 
-### Supported Libraries
+**Write this:**  
+<img src="./assets/goswag-way.png" alt="goswag way" width="500"/>  
+
+**Instead of this:**
+
+<img src="./assets/swag-way.png" alt="swag way" width="500"/>  
+
+**And will have the same result:**
+
+<img src="./assets/swagger-result.png" alt="swagger result" width="500"/>
+
+### - Supported Libraries
 - [echo](https://github.com/labstack/echo) 
 - [gin](https://github.com/gin-gonic/gin)
 
@@ -95,7 +106,7 @@ In order to start your router, you currently need to provide a database connecti
 // @title           GoSwag example API
 // @version         1.0
 func main() {
-    // Here you have already used goswag for your route setup and added annotations
+    // Here you have already used goswag for your route setup, added annotations and change it return to goswag.Echo or Gin interfaces
     ge := server.SetupRoutes(nil)
     ge.GenerateSwagger() //will generate your swagger
 }
