@@ -23,16 +23,100 @@
     </a>
 </p>
 
+## Introduction
+It will add methods to your go framework, to be possible generate a separated file with all necessary comments for [swag lib](https://github.com/swaggo/swag) can generate the swagger files. 
+### - Why: 
+I was searching for an automated method to generate Swagger documentation for Golang APIs. I came across the [`swaggo/swag`](https://github.com/swaggo/swag) lib, which seems to be the most popular choice or, at the very least, has numerous articles and tutorials promoting its use. However, I was dissatisfied with the process of adding extensive comments throughout the main file and other files containing handler functions. As a result, I decided to develop the goswag library.
 
-### Setup
-- Create a folder on your repository root named goswag.  
-- Create a file called main.go with package main
-- Add setup for your router
-- create a command on make file
+### - How:
+Currently, Goswag supports two frameworks: [echo](https://github.com/labstack/echo) and [gin](https://github.com/gin-gonic/gin). The aim is to maintain simplicity by adhering to the same usage patterns as these frameworks, while also incorporating additional functionalities to facilitate Swagger documentation generation.  
+For instance, if Echo utilizes a POST method with specific parameters, Goswag will mirror the method and parameters, making it straightforward to integrate into your projects. This principle applies similarly to Gin, and we aspire to extend this consistency to future libraries that may be incorporated.
+
+
+## Getting started
+
+### 1 - Modifying your current project
+When initializing your current framework, such as `e := echo.New()`, begin by replacing it with `ge := goswag.NewEcho()` or `gg := goswag.NewGin(gin)` by passing the Gin instance as a parameter for the Gin framework. 
+
+### 2 - Using original framework configuration
+If you intend to utilize the framework with alternative configurations, for instance: `e.Debug = true`, you can access `e` as follows: `ge.Echo().Debug = true` achieving identical results.
+
+### 3 - Add annotations to your routes:
+After completing the initial setup, your routes are established without errors and require no further changes. However, your routes will now possess additional methods:
+- `Summary`: Provides a brief overview of your route.
+- `Description`: Offers a detailed description of your route (If not set, it defaults to the summary).
+- `Accepts`: The default value is *json*. f you wish to incorporate different values, please refer to the list of possible values [here](https://github.com/swaggo/swag#mime-types). 
+- `Produces`: The default value is *json*. To include different values, consult the list of possible options [here](https://github.com/swaggo/swag#mime-types).
+- `Read`: ISpecifies the request body received by your routes.
+- `Returns`: Is an array of ReturnType{}. Your route can have multiples returns (e.g., success, errors e etc). Refer to the [interface reference](https://github.com/diegoclair/goswag/blob/main/models/models.go#L64) for detailed usage information.
+```go
+type ReturnType struct {
+	StatusCode int
+	Body       interface{}
+	// example: map[jsonFieldName]fieldType{}
+	OverrideStructFields map[string]interface{}
+}
+```
+- `QueryParam`: Defines the query parameters of the route and specifies if they are required.
+- `HeaderParam`: Defines the header parameters of the route and specifies if they are required.
+
+### 4 - Generating your Swagger Documentation
+The method used to instantiate your router, either `NewEcho()` or `NewGin()` includes a function called `GenerateSwagger()`.  
+After setting up all your routes (including annotations), you can invoke `GenerateSwagger()` to generate your swagger documentation. However, this implies that if your route setup relies on services like a running database or RabbitMQ, you can only generate your Swagger documentation when your entire infrastructure is operational, which is not ideal.
+
+#### Recommended Approach:
+The recommended approach is to have a separate main file where you do not need to provide real connections for your route setup.
+
+Consider a file named `server.go` with the following setup:
+```go
+func SetupRoutes(db *sql.DB) *echo.Echo {
+    e := echo.New()
+    handlers := handlers.New(db)
+    e.GET("/hello", handlers.HandleHello)
+     
+    return e
+}
+```
+In order to start your router, you currently need to provide a database connection. However, this requirement is unnecessary for generating Swagger documentation.
+
+#### Recommended Approach Setup
+- Install [`swag`](https://github.com/swaggo/swag/blob/master/README.md#getting-started). It is necessary for generate swagger documents.
+- Create a folder in your root project folder named `goswag`.
+- Inside the `goswag` folder, create a file called `main.go` with package main.
+- Inside of this file, create your main function that will invoke your routerSetup.
+    - You can add comments to the main.go file for your Swagger, similar to [this example](https://github.com/swaggo/swag/blob/master/README.md#how-to-use-it-with-gin) in item 2.
+
+```go
+// @title           GoSwag example API
+// @version         1.0
+func main() {
+    // Here you have already used goswag for your route setup and added annotations
+    ge := server.SetupRoutes(nil)
+    ge.GenerateSwagger() //will generate your swagger
+}
+```
+- Create a Makefile and add the following command:
+```Make
+.PHONY: docs
+docs:
+	@cd goswag && \
+	go run main.go && \
+	cd .. && \
+	swag init -g ./goswag/main.go && \
+	swag fmt -d ./goswag/
+```
+
+Now you can run the command `make docs`.
+This will create a new `goswag.go` file inside your `goswag` folder, containing all handlers and necessary comments for the swag library to generate the Swagger files inside the `docs`folder.
+
+
 
 ## Contributing
 
-Contributions are welcomed. To contribute, please follow these steps:
+**Contributions are welcomed. :)**  
+You can contribute not only with code but also by enhancing these `README.md` docs, writing articles, using Goswag and providing feedback.  
+  
+To contribute, please follow these steps:
 
 1. Fork the repository
 2. Create a new feature branch (`git checkout -b feature/<FEATURE NAME>`)
@@ -46,5 +130,4 @@ Contributions are welcomed. To contribute, please follow these steps:
 Goswag is [MIT licensed](./LICENSE).
 
 ### TODO:
-- Create ReadmeDocs
-- Gin does not implement the method Match or Any from gin, because there are no way (yet) to define the same (summary,responses,bodies) for all methods
+- NewGin() does not implement the method Match or Any from gin, because there are no way (yet) to define the same (summary,responses,bodies) for all methods
