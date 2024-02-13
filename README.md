@@ -25,14 +25,18 @@
 
 ## Introduction
 It will extend your Go framework by providing methods to generate a separate file containing all the necessary comments. These comments enable the Swag library to effortlessly generate Swagger files.
- 
+
 ### - Why: 
 I was searching for an automated method to generate Swagger documentation for Golang APIs. I came across the [`swaggo/swag`](https://github.com/swaggo/swag) lib, which seems to be the most popular choice or, at the very least, has numerous articles and tutorials promoting its use. However, I was dissatisfied with the process of adding extensive comments throughout the main file and other files containing handler functions. As a result, I decided to develop the goswag library.
 
 ### - How:
-Currently, Goswag supports two frameworks: [echo](https://github.com/labstack/echo) and [gin](https://github.com/gin-gonic/gin). The aim is to maintain simplicity by adhering to the same usage patterns as these frameworks, while also incorporating additional functionalities to facilitate Swagger documentation generation.  
-For instance, if Echo utilizes a POST method with specific parameters, Goswag will mirror the method and parameters, making it straightforward to integrate into your projects. This principle applies similarly to Gin, and we aspire to extend this consistency to future libraries that may be incorporated.
+Goswag simplifies the process of integrating Swagger documentation generation into your Go projects. By seamlessly aligning with your chosen framework's usage patterns, Goswag ensures a smooth integration experience.
 
+For instance, if your framework uses a POST method with specific parameters, Goswag mirrors these method and parameters, streamlining the integration process. This principle applies across supported frameworks, ensuring consistency and ease of use.
+
+### Supported Libraries
+- [echo](https://github.com/labstack/echo) 
+- [gin](https://github.com/gin-gonic/gin)
 
 ## Getting started
 
