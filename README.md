@@ -5,8 +5,8 @@ To help you auto generate swagger for your golang code.
     <a href="https://github.com/diegoclair/goswag/tags" alt="GitHub tag">
      <img src="https://img.shields.io/github/tag/diegoclair/goswag.svg" />
     </a>
-    <a href="https://coveralls.io/github/diegoclair/goswag?branch=main">
-     <img src="https://coveralls.io/repos/github/diegoclair/goswag/badge.svg?branch=main" />
+    <a href='https://coveralls.io/github/diegoclair/goswag?branch=main'>
+     <img src='https://coveralls.io/repos/github/diegoclair/goswag/badge.svg?branch=main' alt='Coverage Status' />
     </a>
     <a href="https://github.com/diegoclair/goswag/actions">
      <img src="https://github.com/diegoclair/go_utils/actions/workflows/ci.yaml/badge.svg" alt="build status">
