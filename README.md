@@ -24,7 +24,8 @@
 </p>
 
 ## Introduction
-It will add methods to your go framework, to be possible generate a separated file with all necessary comments for [swag lib](https://github.com/swaggo/swag) can generate the swagger files. 
+It will extend your Go framework by providing methods to generate a separate file containing all the necessary comments. These comments enable the Swag library to effortlessly generate Swagger files.
+ 
 ### - Why: 
 I was searching for an automated method to generate Swagger documentation for Golang APIs. I came across the [`swaggo/swag`](https://github.com/swaggo/swag) lib, which seems to be the most popular choice or, at the very least, has numerous articles and tutorials promoting its use. However, I was dissatisfied with the process of adding extensive comments throughout the main file and other files containing handler functions. As a result, I decided to develop the goswag library.
 
