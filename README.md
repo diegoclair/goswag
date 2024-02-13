@@ -1,7 +1,7 @@
 # goswag
 
 <p align="center">
- <b>To help you auto generate swagger for your golang code.</b><br>
+ <b>To help you auto generate swagger for your golang APIs</b><br>
  <img src='./assets/gopher-swagger.png' width='350'> <br>
     <a href="https://github.com/diegoclair/goswag/tags" alt="GitHub tag">
      <img src="https://img.shields.io/github/tag/diegoclair/goswag.svg" />
