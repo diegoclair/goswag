@@ -1,7 +1,8 @@
 # goswag
-To help you auto generate swagger for your golang code.
 
 <p align="center">
+ <b>To help you auto generate swagger for your golang code.</b><br>
+ <img src='./assets/gopher-swagger.png' width='350'> <br>
     <a href="https://github.com/diegoclair/goswag/tags" alt="GitHub tag">
      <img src="https://img.shields.io/github/tag/diegoclair/goswag.svg" />
     </a>
@@ -16,6 +17,9 @@ To help you auto generate swagger for your golang code.
     </a>
     <a href="https://opensource.org/licenses/MIT">
      <img src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+    </a>
+    <a href='https://goreportcard.com/badge/github.com/diegoclair/goswag'>
+     <img src='https://goreportcard.com/badge/github.com/diegoclair/goswag' alt='Go Report'/>
     </a>
 </p>
 
