@@ -10,7 +10,7 @@
      <img src='https://coveralls.io/repos/github/diegoclair/goswag/badge.svg?branch=main' alt='Coverage Status' />
     </a>
     <a href="https://github.com/diegoclair/goswag/actions">
-     <img src="https://github.com/diegoclair/go_utils/actions/workflows/ci.yaml/badge.svg" alt="build status">
+     <img src="https://github.com/diegoclair/goswag/actions/workflows/ci.yaml/badge.svg" alt="build status">
     </a>
     <a href="https://github.com/diegoclair/goswag/contributors" alt="Contributors">
      <img src="https://img.shields.io/github/contributors/diegoclair/goswag" />
