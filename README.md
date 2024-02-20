@@ -122,8 +122,14 @@ docs:
 	swag fmt -d ./goswag/
 ```
 
-Now you can run the command `make docs`.
-This will create a new `goswag.go` file inside your `goswag` folder, containing all handlers and necessary comments for the swag library to generate the Swagger files inside the `docs`folder.
+You can now execute the `make docs` command.  
+It will generate a new `goswag.go` file inside of your `goswag` directory. This file includes all necessary handlers and comments for the Swag library to generate the Swagger files inside the `docs` directory.
+
+**NOTE**: after the first generation, the `doc.go` file in the `docs` folder will import Swag library. If you haven't used Swag in your project before, you'll need to run `go mod tidy` to ensure the swag package is included in your `go.mod` file. 
+
+## Example of Usage
+To see an example of usage, you can check this [repository](https://github.com/diegoclair/go_boilerplate).
+The necessary modifications are located in `transport/rest/server.go` and the `router.go` file inside of each route directory in `transport/rest/routes/`.
 
 ## More features
 You can add description for fields, add if they are required or not.  
