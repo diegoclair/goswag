@@ -234,7 +234,7 @@ func TestWriteGroup(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			var b strings.Builder
-			writeGroup(tt.groups, &b)
+			writeGroup(tt.groups, &b, map[string]bool{})
 
 			assert.Equal(t, tt.expectedStringBuilder, b.String())
 		})
@@ -420,7 +420,7 @@ func TestWriteRoutes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			var b strings.Builder
-			writeRoutes(tt.groupName, tt.routes, &b)
+			writeRoutes(tt.groupName, tt.routes, &b, map[string]bool{})
 
 			assert.Equal(t, tt.expectedStringBuilder, b.String())
 		})
@@ -432,7 +432,7 @@ func TestWriteReturns(t *testing.T) {
 		name                  string
 		returns               []models.ReturnType
 		expectedStringBuilder string
-		expectedPackages      []string
+		expectedPackages      map[string]bool
 	}{
 		{
 			name: "Should return the struct name and package name as success 200",
@@ -443,6 +443,7 @@ func TestWriteReturns(t *testing.T) {
 				},
 			},
 			expectedStringBuilder: "// @Success 200 {object} models.ReturnType\n",
+			expectedPackages:      map[string]bool{},
 		},
 		{
 			name: "Should do nothing if we do not have status code",
@@ -452,6 +453,7 @@ func TestWriteReturns(t *testing.T) {
 				},
 			},
 			expectedStringBuilder: "",
+			expectedPackages:      map[string]bool{},
 		},
 		{
 			name: "Should return the struct name and package name as failure 400",
@@ -462,6 +464,7 @@ func TestWriteReturns(t *testing.T) {
 				},
 			},
 			expectedStringBuilder: "// @Failure 400 {object} models.ReturnType\n",
+			expectedPackages:      map[string]bool{},
 		},
 		{
 			name: "Should add only status code if we do not have body",
@@ -471,14 +474,19 @@ func TestWriteReturns(t *testing.T) {
 				},
 			},
 			expectedStringBuilder: "// @Failure 400\n",
+			expectedPackages:      map[string]bool{},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			var b strings.Builder
-			pkgs := writeReturns(tt.returns, &b)
+			var (
+				b    strings.Builder
+				pkgs = make(map[string]bool)
+			)
+
+			writeReturns(tt.returns, &b, pkgs)
 
 			assert.Equal(t, tt.expectedStringBuilder, b.String())
 			assert.Equal(t, tt.expectedPackages, pkgs)
@@ -493,7 +501,7 @@ func Test_writeIfIsGenericType(t *testing.T) {
 		respType              string
 		expectedIsGeneric     bool
 		expectedStringBuilder string
-		expectedPkg           []string
+		expectedPkg           map[string]bool
 	}{
 		{
 			name: "Should return false if the body is not a generic type",
@@ -502,6 +510,7 @@ func Test_writeIfIsGenericType(t *testing.T) {
 			},
 			respType:              "@Success",
 			expectedStringBuilder: "",
+			expectedPkg:           map[string]bool{},
 			expectedIsGeneric:     false,
 		},
 		{
@@ -512,7 +521,7 @@ func Test_writeIfIsGenericType(t *testing.T) {
 			},
 			respType:              "@Success",
 			expectedStringBuilder: "// @Success 200 {object} testutil.StructGeneric[testutil.TestGeneric]",
-			expectedPkg:           []string{"github.com/diegoclair/goswag/internal/generator/testutil"},
+			expectedPkg:           map[string]bool{"github.com/diegoclair/goswag/internal/generator/testutil": true},
 			expectedIsGeneric:     true,
 		},
 		{
@@ -523,7 +532,7 @@ func Test_writeIfIsGenericType(t *testing.T) {
 			},
 			respType:              "@Success",
 			expectedStringBuilder: "// @Success 200 {object} testutil.StructGeneric[[]testutil.TestGeneric]",
-			expectedPkg:           []string{"github.com/diegoclair/goswag/internal/generator/testutil"},
+			expectedPkg:           map[string]bool{"github.com/diegoclair/goswag/internal/generator/testutil": true},
 			expectedIsGeneric:     true,
 		},
 		{
@@ -534,6 +543,7 @@ func Test_writeIfIsGenericType(t *testing.T) {
 			},
 			respType:              "@Success",
 			expectedStringBuilder: "// @Success 200 {object} testutil.StructGeneric[int]",
+			expectedPkg:           map[string]bool{},
 			expectedIsGeneric:     true,
 		},
 	}
@@ -541,8 +551,11 @@ func Test_writeIfIsGenericType(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			var b strings.Builder
-			result, pkgs := writeIfIsGenericType(&b, tt.data, tt.respType)
+			var (
+				b    strings.Builder
+				pkgs = make(map[string]bool)
+			)
+			result := writeIfIsGenericType(&b, tt.data, tt.respType, pkgs)
 
 			assert.Equal(t, tt.expectedIsGeneric, result)
 			assert.Equal(t, tt.expectedStringBuilder, b.String())
@@ -600,7 +613,7 @@ func Test_writeFileContent(t *testing.T) {
 	type args struct {
 		file             io.Writer
 		content          string
-		packagesToImport []string
+		packagesToImport map[string]bool
 	}
 	tests := []struct {
 		name     string
@@ -612,7 +625,7 @@ func Test_writeFileContent(t *testing.T) {
 			args: args{
 				file:             &strings.Builder{},
 				content:          "test",
-				packagesToImport: []string{"test"},
+				packagesToImport: map[string]bool{"test": true},
 			},
 			expected: "package main\n\nimport (\n\t_ \"test\"\n)\n\ntest",
 		},

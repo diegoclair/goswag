@@ -46,18 +46,18 @@ type Group struct {
 
 func GenerateSwagger(routes []Route, groups []Group) {
 	var (
-		packagesToImport []string
+		packagesToImport = make(map[string]bool)
 		fullFileContent  = &strings.Builder{}
 	)
 
 	log.Printf("Generating %s file...", fileName)
 
 	if routes != nil {
-		packagesToImport = append(packagesToImport, writeRoutes("", routes, fullFileContent)...)
+		writeRoutes("", routes, fullFileContent, packagesToImport)
 	}
 
 	if groups != nil {
-		packagesToImport = append(packagesToImport, writeGroup(groups, fullFileContent)...)
+		writeGroup(groups, fullFileContent, packagesToImport)
 	}
 
 	f, err := os.Create(fmt.Sprintf("./%s", fileName))
@@ -71,13 +71,13 @@ func GenerateSwagger(routes []Route, groups []Group) {
 	log.Printf("%s file generated successfully!", fileName)
 }
 
-func writeFileContent(file io.Writer, content string, packagesToImport []string) {
+func writeFileContent(file io.Writer, content string, packagesToImport map[string]bool) {
 	fmt.Fprintf(file, "package main\n\n")
 
 	if len(packagesToImport) > 0 {
 		fmt.Fprintf(file, "import (\n")
 
-		for _, pkg := range packagesToImport {
+		for pkg, _ := range packagesToImport {
 			fmt.Fprintf(file, "\t_ \"%s\"\n", pkg)
 		}
 
@@ -87,7 +87,7 @@ func writeFileContent(file io.Writer, content string, packagesToImport []string)
 	fmt.Fprintf(file, "%s", content)
 }
 
-func writeRoutes(groupName string, routes []Route, s *strings.Builder) (packagesToImport []string) {
+func writeRoutes(groupName string, routes []Route, s *strings.Builder, packagesToImport map[string]bool) {
 	for _, r := range routes {
 		addLineIfNotEmpty(s, r.Summary, "// @Summary %s\n")
 		addTextIfNotEmptyOrDefault(s, r.Summary, "// @Description %s\n", r.Description)
@@ -129,7 +129,7 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder) (packages
 		}
 
 		if r.Returns != nil {
-			packagesToImport = append(packagesToImport, writeReturns(r.Returns, s)...)
+			writeReturns(r.Returns, s, packagesToImport)
 		}
 
 		if r.Path != "" {
@@ -142,11 +142,9 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder) (packages
 
 		s.WriteString("\n")
 	}
-
-	return packagesToImport
 }
 
-func writeReturns(returns []models.ReturnType, s *strings.Builder) (packagesToImport []string) {
+func writeReturns(returns []models.ReturnType, s *strings.Builder, packagesToImport map[string]bool) {
 	for _, data := range returns {
 		if data.StatusCode == 0 {
 			continue
@@ -165,7 +163,7 @@ func writeReturns(returns []models.ReturnType, s *strings.Builder) (packagesToIm
 		}
 
 		var isGeneric bool
-		isGeneric, packagesToImport = writeIfIsGenericType(s, data, respType)
+		isGeneric = writeIfIsGenericType(s, data, respType, packagesToImport)
 
 		if !isGeneric {
 			// if it is not a generic type, we can write the response normally
@@ -175,27 +173,22 @@ func writeReturns(returns []models.ReturnType, s *strings.Builder) (packagesToIm
 		handleOverrideStructFields(s, data)
 
 		s.WriteString("\n")
-
 	}
-
-	return packagesToImport
 }
 
-func writeGroup(groups []Group, s *strings.Builder) (packagesToImport []string) {
+func writeGroup(groups []Group, s *strings.Builder, packagesToImport map[string]bool) {
 	for _, g := range groups {
-		packagesToImport = append(packagesToImport, writeRoutes(g.GroupName, g.Routes, s)...)
+		writeRoutes(g.GroupName, g.Routes, s, packagesToImport)
 
 		if g.Groups != nil {
-			packagesToImport = append(packagesToImport, writeGroup(g.Groups, s)...)
+			writeGroup(g.Groups, s, packagesToImport)
 		}
 	}
-
-	return packagesToImport
 }
 
 // writeIfIsGenericType writes the correctly response type if it is a generic type
 // and returns the packages to import that need to be added to the goswag.go file to make it work
-func writeIfIsGenericType(s *strings.Builder, data models.ReturnType, respType string) (isGeneric bool, packagesToImport []string) {
+func writeIfIsGenericType(s *strings.Builder, data models.ReturnType, respType string, packagesToImport map[string]bool) (isGeneric bool) {
 	bodyName := getStructAndPackageName(data.Body)
 
 	// generic last character here will be ']'
@@ -223,13 +216,13 @@ func writeIfIsGenericType(s *strings.Builder, data models.ReturnType, respType s
 		removedType := strings.Replace(insidePkg, insideGenericsFullName, "", -1) // github.com/diegoclair/goswag/internal/generator/
 		fullInsidePkg := removedType + pkg                                        // github.com/diegoclair/goswag/internal/generator/testutil
 
-		packagesToImport = append(packagesToImport, fullInsidePkg)
+		packagesToImport[fullInsidePkg] = true
 
 		correctlyResponseType := strings.Replace(bodyName, removedType, "", -1) // remove full package from the struct name
 
 		s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, correctlyResponseType))
 
-		return isGeneric, packagesToImport
+		return isGeneric
 	}
 
 	if hasSlash {
@@ -247,13 +240,13 @@ func writeIfIsGenericType(s *strings.Builder, data models.ReturnType, respType s
 		removedType := strings.Replace(insidePkg, insideGenericsFullName, "", -1) // github.com/diegoclair/goswag/internal/generator/
 		fullInsidePkg := removedType + pkg                                        // github.com/diegoclair/goswag/internal/generator/testutil
 
-		packagesToImport = append(packagesToImport, fullInsidePkg)
+		packagesToImport[fullInsidePkg] = true
 
 		correctlyResponseType := strings.Replace(bodyName, removedType, "", -1) // remove full package from the struct name
 
 		s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, correctlyResponseType))
 
-		return isGeneric, packagesToImport
+		return isGeneric
 	}
 
 	// example: genericStruct[int] or genericStruct[string] or genericStruct[bool]
@@ -261,7 +254,7 @@ func writeIfIsGenericType(s *strings.Builder, data models.ReturnType, respType s
 
 	s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, bodyName))
 
-	return isGeneric, packagesToImport
+	return isGeneric
 }
 
 func handleOverrideStructFields(s *strings.Builder, data models.ReturnType) {
