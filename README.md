@@ -115,6 +115,7 @@ func main() {
 ```Make
 .PHONY: docs
 docs:
+    @go install github.com/swaggo/swag/cmd/swag@latest
 	@cd goswag && \
 	go run main.go && \
 	cd .. && \
