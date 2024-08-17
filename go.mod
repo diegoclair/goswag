@@ -1,6 +1,6 @@
 module github.com/diegoclair/goswag
 
-go 1.22.1
+go 1.23.0
 
 require (
 	github.com/ettle/strcase v0.2.0
