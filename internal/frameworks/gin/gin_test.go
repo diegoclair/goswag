@@ -694,3 +694,12 @@ func TestGinRoute_HeaderParam(t *testing.T) {
 		assert.Equal(t, []generator.Param{{Name: "test", Description: "test", ParamType: "test", Required: true}}, g.Route.HeaderParams)
 	})
 }
+
+func TestGinRoute_PathParam(t *testing.T) {
+	t.Run("should add path param", func(t *testing.T) {
+		g := &ginRoute{}
+		got := g.PathParam("test", "test", "test", true)
+		assert.NotNil(t, got)
+		assert.Equal(t, []generator.Param{{Name: "test", Description: "test", ParamType: "test", Required: true}}, g.Route.PathParams)
+	})
+}

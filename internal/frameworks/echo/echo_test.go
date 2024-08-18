@@ -952,3 +952,48 @@ func TestEchoRoute_HeaderParam(t *testing.T) {
 		})
 	}
 }
+
+func TestEchoRoute_PathParam(t *testing.T) {
+	type args struct {
+		name        string
+		description string
+		paramType   string
+		required    bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want generator.Route
+	}{
+		{
+			name: "Test PathParam",
+			args: args{
+				name:        "Test",
+				description: "Test",
+				paramType:   "Test",
+				required:    true,
+			},
+			want: generator.Route{
+				PathParams: []generator.Param{
+					{
+						Name:        "Test",
+						Description: "Test",
+						ParamType:   "Test",
+						Required:    true,
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &echoRoute{
+				Route: generator.Route{},
+			}
+			got := r.PathParam(tt.args.name, tt.args.description, tt.args.paramType, tt.args.required)
+			assert.NotNil(t, got)
+
+			assert.Equal(t, tt.want.PathParams, r.Route.PathParams)
+		})
+	}
+}
