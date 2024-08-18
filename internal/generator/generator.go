@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/diegoclair/goswag/models"
-	"github.com/ettle/strcase"
 )
 
 const fileName = "goswag.go"
@@ -26,7 +25,6 @@ type Route struct {
 	Path         string
 	Method       string
 	FuncName     string // it will be used to generate the function on the goswag.go file
-	PathParams   []string
 	Summary      string
 	Description  string
 	Tags         []string
@@ -36,6 +34,7 @@ type Route struct {
 	Returns      []models.ReturnType // example: map[statusCode]responseBody
 	QueryParams  []Param
 	HeaderParams []Param
+	PathParams   []Param
 }
 
 type Group struct {
@@ -77,7 +76,7 @@ func writeFileContent(file io.Writer, content string, packagesToImport map[strin
 	if len(packagesToImport) > 0 {
 		fmt.Fprintf(file, "import (\n")
 
-		for pkg, _ := range packagesToImport {
+		for pkg := range packagesToImport {
 			fmt.Fprintf(file, "\t_ \"%s\"\n", pkg)
 		}
 
@@ -113,7 +112,9 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder, packagesT
 		}
 
 		for _, param := range r.PathParams {
-			s.WriteString(fmt.Sprintf("// @Param %s path string true \"%s\" \n", param, strcase.ToCamel(param)))
+			s.WriteString(fmt.Sprintf("// @Param %s path %s %t \"%s\"\n",
+				param.Name, param.ParamType, param.Required, param.Description),
+			)
 		}
 
 		for _, param := range r.QueryParams {
@@ -162,8 +163,7 @@ func writeReturns(returns []models.ReturnType, s *strings.Builder, packagesToImp
 			continue
 		}
 
-		var isGeneric bool
-		isGeneric = writeIfIsGenericType(s, data, respType, packagesToImport)
+		var isGeneric bool = writeIfIsGenericType(s, data, respType, packagesToImport)
 
 		if !isGeneric {
 			// if it is not a generic type, we can write the response normally

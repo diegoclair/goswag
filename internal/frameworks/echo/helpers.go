@@ -1,7 +1,6 @@
 package echo
 
 import (
-	"regexp"
 	"strings"
 
 	"github.com/diegoclair/goswag/internal/generator"
@@ -43,19 +42,4 @@ func toGoSwagGroup(from []*echoGroup) []generator.Group {
 	}
 
 	return groups
-}
-
-var pathParamRE = regexp.MustCompile(`:(.*?)(/|$)`)
-
-// getPathParams extracts path parameters from the given path.
-// It uses the :param format used by the Echo framework to define path parameters.
-// The function returns a slice of strings containing all the extracted parameters.
-func getPathParams(path string) []string {
-	matches := pathParamRE.FindAllStringSubmatch(path, -1)
-	var params []string
-	for _, match := range matches {
-		params = append(params, match[1])
-	}
-
-	return params
 }

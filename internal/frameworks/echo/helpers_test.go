@@ -153,32 +153,3 @@ func Test_toGoSwagGroup(t *testing.T) {
 		})
 	}
 }
-
-func Test_getPathParams(t *testing.T) {
-	type args struct {
-		path string
-	}
-	tests := []struct {
-		name string
-		args args
-		want []string
-	}{
-		{
-			name: "Should return the path params",
-			args: args{path: "/user/:id"},
-			want: []string{"id"},
-		},
-		{
-			name: "Should return the path params for multiple params",
-			args: args{path: "/user/:id/:name"},
-			want: []string{"id", "name"},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := getPathParams(tt.args.path); len(got) != len(tt.want) {
-				t.Errorf("getPathParams() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}

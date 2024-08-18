@@ -58,10 +58,9 @@ func TestGinSwagger_Handle(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "GET",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "GET",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -94,10 +93,9 @@ func TestGinSwagger_POST(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "POST",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "POST",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -130,10 +128,9 @@ func TestGinSwagger_GET(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "GET",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "GET",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -166,10 +163,9 @@ func TestGinSwagger_PUT(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "PUT",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "PUT",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -202,10 +198,9 @@ func TestGinSwagger_DELETE(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "DELETE",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "DELETE",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -238,10 +233,9 @@ func TestGinSwagger_PATCH(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "PATCH",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "PATCH",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -274,10 +268,9 @@ func TestGinSwagger_OPTIONS(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "OPTIONS",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "OPTIONS",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -310,10 +303,9 @@ func TestGinSwagger_HEAD(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "HEAD",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "HEAD",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -348,10 +340,9 @@ func TestGinGroup_Handle(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "GET",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "GET",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -385,10 +376,9 @@ func TestGinGroup_POST(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "POST",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "POST",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -422,10 +412,9 @@ func TestGinGroup_GET(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "GET",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "GET",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -459,10 +448,9 @@ func TestGinGroup_PUT(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "PUT",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "PUT",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -496,10 +484,9 @@ func TestGinGroup_DELETE(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "DELETE",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "DELETE",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -533,10 +520,9 @@ func TestGinGroup_PATCH(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "PATCH",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "PATCH",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -570,10 +556,9 @@ func TestGinGroup_OPTIONS(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "OPTIONS",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "OPTIONS",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -607,10 +592,9 @@ func TestGinGroup_HEAD(t *testing.T) {
 				handlers:     []gin.HandlerFunc{func(c *gin.Context) {}},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "HEAD",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "HEAD",
+				FuncName: "func1",
 			},
 		},
 	}

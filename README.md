@@ -75,6 +75,7 @@ type ReturnType struct {
 ```
 - `QueryParam`: Defines the query parameters of the route and specifies if they are required.
 - `HeaderParam`: Defines the header parameters of the route and specifies if they are required.
+- `PathParam`: Defines the path parameters of the route and specifies if they are required.
 
 ### 4 - Generating your Swagger Documentation
 The method used to instantiate your router, either `NewEcho()` or `NewGin()` includes a function called `GenerateSwagger()`.  

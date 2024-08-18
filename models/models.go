@@ -64,10 +64,17 @@ type Swagger interface {
 	Returns(data []ReturnType) Swagger
 
 	// QueryParam is used to define the query parameters of the route and if it is required or not.
-	// The dataType accept can be goswag.StringType, goswag.IntType, goswag.NumberType, goswag.BoolType.
+	// The dataType field should be one of the following options:
+	// goswag.StringType, goswag.IntType, goswag.NumberType, goswag.BoolType.
 	QueryParam(name, description, dataType string, required bool) Swagger
 
 	// HeaderParam is used to define the header parameters of the route and if it is required or not.
-	// The dataType accept can be goswag.StringType, goswag.IntType, goswag.NumberType, goswag.BoolType.
+	// The dataType field should be one of the following options:
+	// goswag.StringType, goswag.IntType, goswag.NumberType, goswag.BoolType.
 	HeaderParam(name, description, dataType string, required bool) Swagger
+
+	// PathParam is used to define the path parameters of the route and if it is required or not.
+	// The dataType field should be one of the following options:
+	// goswag.StringType, goswag.IntType, goswag.NumberType, goswag.BoolType.
+	PathParam(name, description, dataType string, required bool) Swagger
 }

@@ -40,10 +40,9 @@ func (s *ginSwagger) Handle(httpMethod, relativePath string, handlers ...gin.Han
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       relativePath,
-			Method:     httpMethod,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(relativePath),
+			Path:     relativePath,
+			Method:   httpMethod,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -57,10 +56,9 @@ func (s *ginSwagger) POST(relativePath string, handlers ...gin.HandlerFunc) mode
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       relativePath,
-			Method:     http.MethodPost,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(relativePath),
+			Path:     relativePath,
+			Method:   http.MethodPost,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -74,10 +72,9 @@ func (s *ginSwagger) GET(relativePath string, handlers ...gin.HandlerFunc) model
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       relativePath,
-			Method:     http.MethodGet,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(relativePath),
+			Path:     relativePath,
+			Method:   http.MethodGet,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -91,10 +88,9 @@ func (s *ginSwagger) PUT(relativePath string, handlers ...gin.HandlerFunc) model
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       relativePath,
-			Method:     http.MethodPut,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(relativePath),
+			Path:     relativePath,
+			Method:   http.MethodPut,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -108,10 +104,9 @@ func (s *ginSwagger) DELETE(relativePath string, handlers ...gin.HandlerFunc) mo
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       relativePath,
-			Method:     http.MethodDelete,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(relativePath),
+			Path:     relativePath,
+			Method:   http.MethodDelete,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -125,10 +120,9 @@ func (s *ginSwagger) PATCH(relativePath string, handlers ...gin.HandlerFunc) mod
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       relativePath,
-			Method:     http.MethodPatch,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(relativePath),
+			Path:     relativePath,
+			Method:   http.MethodPatch,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -142,10 +136,9 @@ func (s *ginSwagger) OPTIONS(relativePath string, handlers ...gin.HandlerFunc) m
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       relativePath,
-			Method:     http.MethodOptions,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(relativePath),
+			Path:     relativePath,
+			Method:   http.MethodOptions,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -159,10 +152,9 @@ func (s *ginSwagger) HEAD(relativePath string, handlers ...gin.HandlerFunc) mode
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       relativePath,
-			Method:     http.MethodHead,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(relativePath),
+			Path:     relativePath,
+			Method:   http.MethodHead,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -183,10 +175,9 @@ func (g *ginGroup) Handle(httpMethod, relativePath string, handlers ...gin.Handl
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       fullPath,
-			Method:     httpMethod,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(fullPath),
+			Path:     fullPath,
+			Method:   httpMethod,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -201,10 +192,9 @@ func (g *ginGroup) POST(relativePath string, handlers ...gin.HandlerFunc) models
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       fullPath,
-			Method:     http.MethodPost,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(fullPath),
+			Path:     fullPath,
+			Method:   http.MethodPost,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -219,10 +209,9 @@ func (g *ginGroup) GET(relativePath string, handlers ...gin.HandlerFunc) models.
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       fullPath,
-			Method:     http.MethodGet,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(fullPath),
+			Path:     fullPath,
+			Method:   http.MethodGet,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -237,10 +226,9 @@ func (g *ginGroup) PUT(relativePath string, handlers ...gin.HandlerFunc) models.
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       fullPath,
-			Method:     http.MethodPut,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(fullPath),
+			Path:     fullPath,
+			Method:   http.MethodPut,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -255,10 +243,9 @@ func (g *ginGroup) DELETE(relativePath string, handlers ...gin.HandlerFunc) mode
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       fullPath,
-			Method:     http.MethodDelete,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(fullPath),
+			Path:     fullPath,
+			Method:   http.MethodDelete,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -273,10 +260,9 @@ func (g *ginGroup) PATCH(relativePath string, handlers ...gin.HandlerFunc) model
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       fullPath,
-			Method:     http.MethodPatch,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(fullPath),
+			Path:     fullPath,
+			Method:   http.MethodPatch,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -291,10 +277,9 @@ func (g *ginGroup) OPTIONS(relativePath string, handlers ...gin.HandlerFunc) mod
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       fullPath,
-			Method:     http.MethodOptions,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(fullPath),
+			Path:     fullPath,
+			Method:   http.MethodOptions,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -309,10 +294,9 @@ func (g *ginGroup) HEAD(relativePath string, handlers ...gin.HandlerFunc) models
 
 	gr := &ginRoute{
 		Route: generator.Route{
-			Path:       fullPath,
-			Method:     http.MethodHead,
-			FuncName:   getFuncName(handlers...),
-			PathParams: getPathParams(fullPath),
+			Path:     fullPath,
+			Method:   http.MethodHead,
+			FuncName: getFuncName(handlers...),
 		},
 	}
 
@@ -373,6 +357,17 @@ func (r *ginRoute) QueryParam(name, description, paramType string, required bool
 
 func (r *ginRoute) HeaderParam(name, description, paramType string, required bool) models.Swagger {
 	r.Route.HeaderParams = append(r.Route.HeaderParams, generator.Param{
+		Name:        name,
+		Description: description,
+		ParamType:   paramType,
+		Required:    required,
+	})
+
+	return r
+}
+
+func (r *ginRoute) PathParam(name, description, paramType string, required bool) models.Swagger {
+	r.Route.PathParams = append(r.Route.PathParams, generator.Param{
 		Name:        name,
 		Description: description,
 		ParamType:   paramType,

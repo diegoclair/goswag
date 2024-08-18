@@ -38,10 +38,9 @@ func (s *echoSwagger) POST(path string, h echo.HandlerFunc, m ...echo.Middleware
 
 	er := &echoRoute{
 		Route: generator.Route{
-			Path:       r.Path,
-			Method:     r.Method,
-			FuncName:   getFuncName(r.Name),
-			PathParams: getPathParams(r.Path),
+			Path:     r.Path,
+			Method:   r.Method,
+			FuncName: getFuncName(r.Name),
 		},
 	}
 
@@ -55,10 +54,9 @@ func (s *echoSwagger) GET(path string, h echo.HandlerFunc, m ...echo.MiddlewareF
 
 	er := &echoRoute{
 		Route: generator.Route{
-			Path:       r.Path,
-			Method:     r.Method,
-			FuncName:   getFuncName(r.Name),
-			PathParams: getPathParams(r.Path),
+			Path:     r.Path,
+			Method:   r.Method,
+			FuncName: getFuncName(r.Name),
 		},
 	}
 
@@ -72,10 +70,9 @@ func (s *echoSwagger) PUT(path string, h echo.HandlerFunc, m ...echo.MiddlewareF
 
 	er := &echoRoute{
 		Route: generator.Route{
-			Path:       r.Path,
-			Method:     r.Method,
-			FuncName:   getFuncName(r.Name),
-			PathParams: getPathParams(r.Path),
+			Path:     r.Path,
+			Method:   r.Method,
+			FuncName: getFuncName(r.Name),
 		},
 	}
 
@@ -89,10 +86,9 @@ func (s *echoSwagger) DELETE(path string, h echo.HandlerFunc, m ...echo.Middlewa
 
 	er := &echoRoute{
 		Route: generator.Route{
-			Path:       r.Path,
-			Method:     r.Method,
-			FuncName:   getFuncName(r.Name),
-			PathParams: getPathParams(r.Path),
+			Path:     r.Path,
+			Method:   r.Method,
+			FuncName: getFuncName(r.Name),
 		},
 	}
 
@@ -106,10 +102,9 @@ func (s *echoSwagger) PATCH(path string, h echo.HandlerFunc, m ...echo.Middlewar
 
 	er := &echoRoute{
 		Route: generator.Route{
-			Path:       r.Path,
-			Method:     r.Method,
-			FuncName:   getFuncName(r.Name),
-			PathParams: getPathParams(r.Path),
+			Path:     r.Path,
+			Method:   r.Method,
+			FuncName: getFuncName(r.Name),
 		},
 	}
 
@@ -123,10 +118,9 @@ func (s *echoSwagger) OPTIONS(path string, h echo.HandlerFunc, m ...echo.Middlew
 
 	er := &echoRoute{
 		Route: generator.Route{
-			Path:       r.Path,
-			Method:     r.Method,
-			FuncName:   getFuncName(r.Name),
-			PathParams: getPathParams(r.Path),
+			Path:     r.Path,
+			Method:   r.Method,
+			FuncName: getFuncName(r.Name),
 		},
 	}
 
@@ -140,10 +134,9 @@ func (s *echoSwagger) HEAD(path string, h echo.HandlerFunc, m ...echo.Middleware
 
 	er := &echoRoute{
 		Route: generator.Route{
-			Path:       r.Path,
-			Method:     r.Method,
-			FuncName:   getFuncName(r.Name),
-			PathParams: getPathParams(r.Path),
+			Path:     r.Path,
+			Method:   r.Method,
+			FuncName: getFuncName(r.Name),
 		},
 	}
 
@@ -172,10 +165,9 @@ func (s *echoGroup) POST(path string, h echo.HandlerFunc, m ...echo.MiddlewareFu
 
 	er := &echoRoute{
 		Route: generator.Route{
-			Path:       r.Path,
-			Method:     r.Method,
-			FuncName:   getFuncName(r.Name),
-			PathParams: getPathParams(r.Path),
+			Path:     r.Path,
+			Method:   r.Method,
+			FuncName: getFuncName(r.Name),
 		},
 	}
 
@@ -189,10 +181,9 @@ func (s *echoGroup) GET(path string, h echo.HandlerFunc, m ...echo.MiddlewareFun
 
 	er := &echoRoute{
 		Route: generator.Route{
-			Path:       r.Path,
-			Method:     r.Method,
-			FuncName:   getFuncName(r.Name),
-			PathParams: getPathParams(r.Path),
+			Path:     r.Path,
+			Method:   r.Method,
+			FuncName: getFuncName(r.Name),
 		},
 	}
 
@@ -206,10 +197,9 @@ func (s *echoGroup) PUT(path string, h echo.HandlerFunc, m ...echo.MiddlewareFun
 
 	er := &echoRoute{
 		Route: generator.Route{
-			Path:       r.Path,
-			Method:     r.Method,
-			FuncName:   getFuncName(r.Name),
-			PathParams: getPathParams(r.Path),
+			Path:     r.Path,
+			Method:   r.Method,
+			FuncName: getFuncName(r.Name),
 		},
 	}
 
@@ -223,10 +213,9 @@ func (s *echoGroup) DELETE(path string, h echo.HandlerFunc, m ...echo.Middleware
 
 	er := &echoRoute{
 		Route: generator.Route{
-			Path:       r.Path,
-			Method:     r.Method,
-			FuncName:   getFuncName(r.Name),
-			PathParams: getPathParams(r.Path),
+			Path:     r.Path,
+			Method:   r.Method,
+			FuncName: getFuncName(r.Name),
 		},
 	}
 
@@ -240,10 +229,9 @@ func (s *echoGroup) PATCH(path string, h echo.HandlerFunc, m ...echo.MiddlewareF
 
 	er := &echoRoute{
 		Route: generator.Route{
-			Path:       r.Path,
-			Method:     r.Method,
-			FuncName:   getFuncName(r.Name),
-			PathParams: getPathParams(r.Path),
+			Path:     r.Path,
+			Method:   r.Method,
+			FuncName: getFuncName(r.Name),
 		},
 	}
 
@@ -257,10 +245,9 @@ func (s *echoGroup) OPTIONS(path string, h echo.HandlerFunc, m ...echo.Middlewar
 
 	er := &echoRoute{
 		Route: generator.Route{
-			Path:       r.Path,
-			Method:     r.Method,
-			FuncName:   getFuncName(r.Name),
-			PathParams: getPathParams(r.Path),
+			Path:     r.Path,
+			Method:   r.Method,
+			FuncName: getFuncName(r.Name),
 		},
 	}
 
@@ -274,10 +261,9 @@ func (s *echoGroup) HEAD(path string, h echo.HandlerFunc, m ...echo.MiddlewareFu
 
 	er := &echoRoute{
 		Route: generator.Route{
-			Path:       r.Path,
-			Method:     r.Method,
-			FuncName:   getFuncName(r.Name),
-			PathParams: getPathParams(r.Path),
+			Path:     r.Path,
+			Method:   r.Method,
+			FuncName: getFuncName(r.Name),
 		},
 	}
 
@@ -338,6 +324,17 @@ func (r *echoRoute) QueryParam(name, description, paramType string, required boo
 
 func (r *echoRoute) HeaderParam(name, description, paramType string, required bool) models.Swagger {
 	r.Route.HeaderParams = append(r.Route.HeaderParams, generator.Param{
+		Name:        name,
+		Description: description,
+		ParamType:   paramType,
+		Required:    required,
+	})
+
+	return r
+}
+
+func (r *echoRoute) PathParam(name, description, paramType string, required bool) models.Swagger {
+	r.Route.PathParams = append(r.Route.PathParams, generator.Param{
 		Name:        name,
 		Description: description,
 		ParamType:   paramType,

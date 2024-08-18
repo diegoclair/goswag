@@ -82,10 +82,9 @@ func TestEchoSwagger_GET(t *testing.T) {
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "GET",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "GET",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -121,10 +120,9 @@ func TestEchoSwagger_POST(t *testing.T) {
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "POST",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "POST",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -160,10 +158,9 @@ func TestEchoSwagger_PUT(t *testing.T) {
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "PUT",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "PUT",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -199,10 +196,9 @@ func TestEchoSwagger_DELETE(t *testing.T) {
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "DELETE",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "DELETE",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -238,10 +234,9 @@ func TestEchoSwagger_PATCH(t *testing.T) {
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "PATCH",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "PATCH",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -277,10 +272,9 @@ func TestEchoSwagger_OPTIONS(t *testing.T) {
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "OPTIONS",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "OPTIONS",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -316,10 +310,9 @@ func TestEchoSwagger_HEAD(t *testing.T) {
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "HEAD",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "HEAD",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -389,10 +382,9 @@ func TestEchoGroup_GET(t *testing.T) {
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "GET",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "GET",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -428,10 +420,9 @@ func TestEchoGroup_POST(t *testing.T) {
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "POST",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "POST",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -467,10 +458,9 @@ func TestEchoGroup_PUT(t *testing.T) {
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "PUT",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "PUT",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -506,10 +496,9 @@ func TestEchoGroup_DELETE(t *testing.T) {
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "DELETE",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "DELETE",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -545,10 +534,9 @@ func TestEchoGroup_PATCH(t *testing.T) {
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "PATCH",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "PATCH",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -584,10 +572,9 @@ func TestEchoGroup_OPTIONS(t *testing.T) {
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "OPTIONS",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "OPTIONS",
+				FuncName: "func1",
 			},
 		},
 	}
@@ -623,10 +610,9 @@ func TestEchoGroup_HEAD(t *testing.T) {
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
-				Path:       "/test/:id/",
-				Method:     "HEAD",
-				FuncName:   "func1",
-				PathParams: []string{"id"},
+				Path:     "/test/:id/",
+				Method:   "HEAD",
+				FuncName: "func1",
 			},
 		},
 	}

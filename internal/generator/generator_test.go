@@ -344,20 +344,17 @@ func TestWriteRoutes(t *testing.T) {
 			groupName: "",
 			routes: []Route{
 				{
-					PathParams: []string{"test"},
+					PathParams: []Param{
+						{
+							Name:        "test",
+							Description: "someTest",
+							ParamType:   "string",
+							Required:    true,
+						},
+					},
 				},
 			},
-			expectedStringBuilder: "// @Param test path string true \"test\" \n\n",
-		},
-		{
-			name:      "Should add path params with camel case",
-			groupName: "",
-			routes: []Route{
-				{
-					PathParams: []string{"test_test"},
-				},
-			},
-			expectedStringBuilder: "// @Param test_test path string true \"testTest\" \n\n",
+			expectedStringBuilder: "// @Param test path string true \"someTest\"\n\n",
 		},
 		{
 			name:      "Should add query params if we have query params",

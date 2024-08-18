@@ -45,39 +45,6 @@ func TestGetFuncName(t *testing.T) {
 	}
 }
 
-func TestGetPathParams(t *testing.T) {
-	type args struct {
-		path string
-	}
-	tests := []struct {
-		name string
-		args args
-		want []string
-	}{
-		{
-			name: "Should return the path parameters",
-			args: args{
-				path: "/path/:id",
-			},
-			want: []string{"id"},
-		},
-		{
-			name: "Should return the path parameters",
-			args: args{
-				path: "/path/:id/:name",
-			},
-			want: []string{"id", "name"},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := getPathParams(tt.args.path); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("getPathParams() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestToGoSwagRoute(t *testing.T) {
 	type args struct {
 		from []*ginRoute

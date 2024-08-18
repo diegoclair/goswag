@@ -3,7 +3,6 @@ module github.com/diegoclair/goswag
 go 1.23.0
 
 require (
-	github.com/ettle/strcase v0.2.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/stretchr/testify v1.9.0

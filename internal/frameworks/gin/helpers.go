@@ -3,7 +3,6 @@ package gin
 import (
 	"path"
 	"reflect"
-	"regexp"
 	"runtime"
 	"strings"
 
@@ -24,21 +23,6 @@ func getFuncName(handlers ...gin.HandlerFunc) string {
 	funcName = strings.TrimSuffix(funcName, "-fm")
 
 	return funcName
-}
-
-var pathParamRE = regexp.MustCompile(`:(.*?)(/|$)`)
-
-// getPathParams extracts path parameters from the given path.
-// It uses the :param format used by the Gin framework to define path parameters.
-// The function returns a slice of strings containing all the extracted parameters.
-func getPathParams(path string) []string {
-	matches := pathParamRE.FindAllStringSubmatch(path, -1)
-	var params []string
-	for _, match := range matches {
-		params = append(params, match[1])
-	}
-
-	return params
 }
 
 // toGoSwagRoute converts a slice of ginRoute to a slice of generator.Route.
