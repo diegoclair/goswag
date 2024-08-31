@@ -169,7 +169,7 @@ func handleLogout() {} //nolint:unused
 //	@Router			/auth/logout [post]
 func handleLogin() {} //nolint:unused 
 ```
-NewEcho() and NewGin() includes de defaultResponses parameter as optional, then you can pass your default responses only if you want =].
+`NewEcho()` and `NewGin()` includes de defaultResponses parameter as optional, then you can pass your default responses only if you want =].
 ## Example of Usage
 To see an example of usage, you can check this [repository](https://github.com/diegoclair/go_boilerplate).
 The necessary modifications are located in `transport/rest/server.go` and the `router.go` file inside of each route directory in `transport/rest/routes/`.
