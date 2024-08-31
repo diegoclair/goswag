@@ -14,6 +14,7 @@ type Echo interface {
 }
 
 // NewEcho returns the interface that wraps the basic Echo methods and add the swagger methods
-func NewEcho() Echo {
-	return echoWrapper.NewEcho()
+// defaultResponses is an optional parameter that can be used to set the default responses for all routes
+func NewEcho(defaultResponses ...models.ReturnType) Echo {
+	return echoWrapper.NewEcho(defaultResponses...)
 }

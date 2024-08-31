@@ -7,14 +7,16 @@ import (
 )
 
 type echoSwagger struct {
-	e      *echo.Echo
-	groups []*echoGroup
-	routes []*echoRoute
+	e                *echo.Echo
+	groups           []*echoGroup
+	routes           []*echoRoute
+	defaultResponses []models.ReturnType
 }
 
-func NewEcho() *echoSwagger {
+func NewEcho(defaultResponses ...models.ReturnType) *echoSwagger {
 	return &echoSwagger{
-		e: echo.New(),
+		e:                echo.New(),
+		defaultResponses: defaultResponses,
 	}
 }
 
@@ -23,7 +25,7 @@ func (s *echoSwagger) Echo() *echo.Echo {
 }
 
 func (s *echoSwagger) GenerateSwagger() {
-	generator.GenerateSwagger(toGoSwagRoute(s.routes), toGoSwagGroup(s.groups))
+	generator.GenerateSwagger(toGoSwagRoute(s.routes), toGoSwagGroup(s.groups), s.defaultResponses)
 }
 
 func (s *echoSwagger) Group(prefix string, m ...echo.MiddlewareFunc) models.EchoGroup {

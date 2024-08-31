@@ -43,13 +43,15 @@ type Group struct {
 	Groups    []Group
 }
 
-func GenerateSwagger(routes []Route, groups []Group) {
+func GenerateSwagger(routes []Route, groups []Group, defaultResponses []models.ReturnType) {
 	var (
 		packagesToImport = make(map[string]bool)
 		fullFileContent  = &strings.Builder{}
 	)
 
 	log.Printf("Generating %s file...", fileName)
+
+	routes, groups = addDefaultResponses(routes, groups, defaultResponses)
 
 	if routes != nil {
 		writeRoutes("", routes, fullFileContent, packagesToImport)
@@ -68,6 +70,23 @@ func GenerateSwagger(routes []Route, groups []Group) {
 	writeFileContent(f, fullFileContent.String(), packagesToImport)
 
 	log.Printf("%s file generated successfully!", fileName)
+}
+
+// addDefaultResponses adds the default responses to the routes and groups if it are not empty
+func addDefaultResponses(routes []Route, groups []Group, defaultResponses []models.ReturnType) ([]Route, []Group) {
+	if len(defaultResponses) == 0 {
+		return routes, groups
+	}
+
+	for i := range routes {
+		routes[i].Returns = append(routes[i].Returns, defaultResponses...)
+	}
+
+	for i := range groups {
+		groups[i].Routes, groups[i].Groups = addDefaultResponses(groups[i].Routes, groups[i].Groups, defaultResponses)
+	}
+
+	return routes, groups
 }
 
 func writeFileContent(file io.Writer, content string, packagesToImport map[string]bool) {

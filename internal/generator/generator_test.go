@@ -634,3 +634,102 @@ func Test_writeFileContent(t *testing.T) {
 		})
 	}
 }
+
+func Test_addDefaultResponses(t *testing.T) {
+	type args struct {
+		routes           []Route
+		groups           []Group
+		defaultResponses []models.ReturnType
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected []Route
+	}{
+		{
+			name: "Should do nothing if we do not have default responses",
+			args: args{
+				routes: []Route{
+					{},
+				},
+				groups: []Group{
+					{
+						Routes: []Route{
+							{},
+						},
+					},
+				},
+				defaultResponses: []models.ReturnType{},
+			},
+			expected: []Route{
+				{},
+			},
+		},
+		{
+			name: "Should add default responses to routes",
+			args: args{
+				routes: []Route{
+					{},
+				},
+				groups: []Group{
+					{
+						Routes: []Route{
+							{},
+						},
+					},
+				},
+				defaultResponses: []models.ReturnType{
+					{
+						StatusCode: 200,
+					},
+				},
+			},
+			expected: []Route{
+				{
+					Returns: []models.ReturnType{
+						{
+							StatusCode: 200,
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Should add default responses to groups",
+			args: args{
+				routes: []Route{
+					{},
+				},
+				groups: []Group{
+					{
+						Routes: []Route{
+							{},
+						},
+					},
+				},
+				defaultResponses: []models.ReturnType{
+					{
+						StatusCode: 204,
+					},
+				},
+			},
+			expected: []Route{
+				{
+					Returns: []models.ReturnType{
+						{
+							StatusCode: 204,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotRoutes, gotGroups := addDefaultResponses(tt.args.routes, tt.args.groups, tt.args.defaultResponses)
+			assert.Equal(t, tt.expected, gotRoutes)
+			assert.Equal(t, tt.expected, gotGroups[0].Routes)
+		})
+	}
+}

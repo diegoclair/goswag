@@ -9,14 +9,16 @@ import (
 )
 
 type ginSwagger struct {
-	g      *gin.Engine
-	groups []*ginGroup
-	routes []*ginRoute
+	g                *gin.Engine
+	groups           []*ginGroup
+	routes           []*ginRoute
+	defaultResponses []models.ReturnType
 }
 
-func NewGin(g *gin.Engine) *ginSwagger {
+func NewGin(g *gin.Engine, defaultResponses ...models.ReturnType) *ginSwagger {
 	return &ginSwagger{
-		g: g,
+		g:                g,
+		defaultResponses: defaultResponses,
 	}
 }
 
@@ -25,7 +27,7 @@ func (s *ginSwagger) Gin() *gin.Engine {
 }
 
 func (s *ginSwagger) GenerateSwagger() {
-	generator.GenerateSwagger(toGoSwagRoute(s.routes), toGoSwagGroup(s.groups))
+	generator.GenerateSwagger(toGoSwagRoute(s.routes), toGoSwagGroup(s.groups), s.defaultResponses)
 }
 
 func (s *ginSwagger) Group(relativePath string, handlers ...gin.HandlerFunc) models.GinRouter {

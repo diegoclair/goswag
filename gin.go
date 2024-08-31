@@ -14,6 +14,7 @@ type Gin interface {
 }
 
 // NewGin returns the interface that wraps the basic Gin methods and add the swagger methods
-func NewGin(g *gin.Engine) Gin {
-	return ginWrapper.NewGin(g)
+// defaultResponses is an optional parameter that can be used to set the default responses for all routes
+func NewGin(g *gin.Engine, defaultResponses ...models.ReturnType) Gin {
+	return ginWrapper.NewGin(g, defaultResponses...)
 }

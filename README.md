@@ -68,9 +68,9 @@ After completing the initial setup, your routes are established without errors a
 ```go
 type ReturnType struct {
 	StatusCode int
-	Body       interface{}
+	Body       any
 	// example: map[jsonFieldName]fieldType{}
-	OverrideStructFields map[string]interface{}
+	OverrideStructFields map[string]any
 }
 ```
 - `QueryParam`: Defines the query parameters of the route and specifies if they are required.
@@ -120,7 +120,7 @@ docs:
 	@cd goswag && \
 	go run main.go && \
 	cd .. && \
-	swag init -g ./goswag/main.go && \
+	swag init --pd -g ./goswag/main.go && \
 	swag fmt -d ./goswag/
 ```
 
@@ -129,6 +129,47 @@ It will generate a new `goswag.go` file inside of your `goswag` directory. This 
 
 **NOTE**: after the first generation, the `doc.go` file in the `docs` folder will import Swag library. If you haven't used Swag in your project before, you'll need to run `go mod tidy` to ensure the swag package is included in your `go.mod` file. 
 
+## Default Response for all routes
+You can add a default responses to all routes when you instantiate the swagger.  
+To add default responses, you need to define your list of default returns and add it to instance, ex:
+```go
+defaultResponses := []models.ReturnType{
+    {
+        StatusCode: http.StatusBadRequest,
+        Body: YourStructOfError,
+    },
+    {
+        StatusCode: http.StatusUnauthorized,
+        Body: YourStructOfError,
+    },
+}
+
+// pass the default responses to instance of your chosen framework
+e := NewEcho(defaultResponses)
+```
+Then it will add default responses for all routes, like the example below:
+```go
+//	@Summary		Logout
+//	@Description	Logout the user
+//	@Tags			auth
+//	@Param			user-token	header	string	true	"User access token"
+//	@Success		200
+//	@Failure		400	{object}	YourStructOfError
+//	@Failure		401	{object}	YourStructOfError
+//	@Router			/auth/logout [post]
+func handleLogout() {} //nolint:unused 
+
+//	@Summary		Login
+//	@Description	Login the user
+//	@Tags			auth
+//	@Param			user-token	header	string	true	"User access token"
+//	@Success		200
+//	@Failure		400	{object}	YourStructOfError
+//	@Failure		401	{object}	YourStructOfError
+//	@Router			/auth/logout [post]
+func handleLogin() {} //nolint:unused 
+```
+NewEcho() and NewGin() includes de defaultResponses parameter as optional, then you can pass your default responses only if you want =].
 ## Example of Usage
 To see an example of usage, you can check this [repository](https://github.com/diegoclair/go_boilerplate).
 The necessary modifications are located in `transport/rest/server.go` and the `router.go` file inside of each route directory in `transport/rest/routes/`.
