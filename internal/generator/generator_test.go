@@ -440,7 +440,7 @@ func TestWriteReturns(t *testing.T) {
 				},
 			},
 			expectedStringBuilder: "// @Success 200 {object} models.ReturnType\n",
-			expectedPackages:      map[string]bool{},
+			expectedPackages:      map[string]bool{"github.com/diegoclair/goswag/models": true},
 		},
 		{
 			name: "Should do nothing if we do not have status code",
@@ -461,7 +461,7 @@ func TestWriteReturns(t *testing.T) {
 				},
 			},
 			expectedStringBuilder: "// @Failure 400 {object} models.ReturnType\n",
-			expectedPackages:      map[string]bool{},
+			expectedPackages:      map[string]bool{"github.com/diegoclair/goswag/models": true},
 		},
 		{
 			name: "Should add only status code if we do not have body",
@@ -487,76 +487,6 @@ func TestWriteReturns(t *testing.T) {
 
 			assert.Equal(t, tt.expectedStringBuilder, b.String())
 			assert.Equal(t, tt.expectedPackages, pkgs)
-		})
-	}
-}
-
-func Test_writeIfIsGenericType(t *testing.T) {
-	var tests = []struct {
-		name                  string
-		data                  models.ReturnType
-		respType              string
-		expectedIsGeneric     bool
-		expectedStringBuilder string
-		expectedPkg           map[string]bool
-	}{
-		{
-			name: "Should return false if the body is not a generic type",
-			data: models.ReturnType{
-				Body: models.ReturnType{},
-			},
-			respType:              "@Success",
-			expectedStringBuilder: "",
-			expectedPkg:           map[string]bool{},
-			expectedIsGeneric:     false,
-		},
-		{
-			name: "Should return true if the body is a generic type",
-			data: models.ReturnType{
-				StatusCode: 200,
-				Body:       testutil.StructGeneric[testutil.TestGeneric]{},
-			},
-			respType:              "@Success",
-			expectedStringBuilder: "// @Success 200 {object} testutil.StructGeneric[testutil.TestGeneric]",
-			expectedPkg:           map[string]bool{"github.com/diegoclair/goswag/internal/generator/testutil": true},
-			expectedIsGeneric:     true,
-		},
-		{
-			name: "Should return true and correctly response when generic is type of slice",
-			data: models.ReturnType{
-				StatusCode: 200,
-				Body:       testutil.StructGeneric[[]testutil.TestGeneric]{},
-			},
-			respType:              "@Success",
-			expectedStringBuilder: "// @Success 200 {object} testutil.StructGeneric[[]testutil.TestGeneric]",
-			expectedPkg:           map[string]bool{"github.com/diegoclair/goswag/internal/generator/testutil": true},
-			expectedIsGeneric:     true,
-		},
-		{
-			name: "Should return true and no pkg when generic is a primitive type",
-			data: models.ReturnType{
-				StatusCode: 200,
-				Body:       testutil.StructGeneric[int]{},
-			},
-			respType:              "@Success",
-			expectedStringBuilder: "// @Success 200 {object} testutil.StructGeneric[int]",
-			expectedPkg:           map[string]bool{},
-			expectedIsGeneric:     true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			var (
-				b    strings.Builder
-				pkgs = make(map[string]bool)
-			)
-			result := writeIfIsGenericType(&b, tt.data, tt.respType, pkgs)
-
-			assert.Equal(t, tt.expectedIsGeneric, result)
-			assert.Equal(t, tt.expectedStringBuilder, b.String())
-			assert.Equal(t, tt.expectedPkg, pkgs)
 		})
 	}
 }
@@ -730,6 +660,82 @@ func Test_addDefaultResponses(t *testing.T) {
 			gotRoutes, gotGroups := addDefaultResponses(tt.args.routes, tt.args.groups, tt.args.defaultResponses)
 			assert.Equal(t, tt.expected, gotRoutes)
 			assert.Equal(t, tt.expected, gotGroups[0].Routes)
+		})
+	}
+}
+
+func Test_addPackageToImport(t *testing.T) {
+	tests := []struct {
+		name         string
+		data         models.ReturnType
+		initialPkgs  map[string]bool
+		expectedPkgs map[string]bool
+	}{
+		{
+			name: "Should add package for non-generic type",
+			data: models.ReturnType{
+				Body: models.ReturnType{},
+			},
+			initialPkgs: make(map[string]bool),
+			expectedPkgs: map[string]bool{
+				"github.com/diegoclair/goswag/models": true,
+			},
+		},
+		{
+			name: "Should add package for generic type",
+			data: models.ReturnType{
+				Body: testutil.StructGeneric[testutil.TestGeneric]{},
+			},
+			initialPkgs: make(map[string]bool),
+			expectedPkgs: map[string]bool{
+				"github.com/diegoclair/goswag/internal/generator/testutil": true,
+			},
+		},
+		{
+			name: "Should not add package for primitive type",
+			data: models.ReturnType{
+				Body: 42,
+			},
+			initialPkgs:  make(map[string]bool),
+			expectedPkgs: map[string]bool{},
+		},
+		{
+			name: "Should not add package for nil body",
+			data: models.ReturnType{
+				Body: nil,
+			},
+			initialPkgs:  make(map[string]bool),
+			expectedPkgs: map[string]bool{},
+		},
+		{
+			name: "Should not duplicate existing package",
+			data: models.ReturnType{
+				Body: models.ReturnType{},
+			},
+			initialPkgs: map[string]bool{
+				"github.com/diegoclair/goswag/models": true,
+			},
+			expectedPkgs: map[string]bool{
+				"github.com/diegoclair/goswag/models": true,
+			},
+		},
+		{
+			name: "Should add package for pointer to struct",
+			data: models.ReturnType{
+				Body: &models.ReturnType{},
+			},
+			initialPkgs: make(map[string]bool),
+			expectedPkgs: map[string]bool{
+				"github.com/diegoclair/goswag/models": true,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			packagesToImport := tt.initialPkgs
+			addPackageToImport(tt.data, packagesToImport)
+			assert.Equal(t, tt.expectedPkgs, packagesToImport)
 		})
 	}
 }

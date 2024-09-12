@@ -182,13 +182,14 @@ func writeReturns(returns []models.ReturnType, s *strings.Builder, packagesToImp
 			continue
 		}
 
-		var isGeneric bool = writeIfIsGenericType(s, data, respType, packagesToImport)
+		var isGeneric bool = writeIfIsGenericType(s, data, respType)
 
 		if !isGeneric {
 			// if it is not a generic type, we can write the response normally
 			s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, getStructAndPackageName(data.Body)))
 		}
 
+		addPackageToImport(data, packagesToImport)
 		handleOverrideStructFields(s, data)
 
 		s.WriteString("\n")
@@ -205,9 +206,23 @@ func writeGroup(groups []Group, s *strings.Builder, packagesToImport map[string]
 	}
 }
 
+// addPackageToImport adds the package to import.
+func addPackageToImport(data models.ReturnType, packagesToImport map[string]bool) {
+	if data.Body == nil {
+		return
+	}
+	t := reflect.TypeOf(data.Body)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	if t.PkgPath() != "" {
+		packagesToImport[t.PkgPath()] = true
+	}
+}
+
 // writeIfIsGenericType writes the correctly response type if it is a generic type
 // and returns the packages to import that need to be added to the goswag.go file to make it work
-func writeIfIsGenericType(s *strings.Builder, data models.ReturnType, respType string, packagesToImport map[string]bool) (isGeneric bool) {
+func writeIfIsGenericType(s *strings.Builder, data models.ReturnType, respType string) (isGeneric bool) {
 	bodyName := getStructAndPackageName(data.Body)
 
 	// generic last character here will be ']'
@@ -229,13 +244,8 @@ func writeIfIsGenericType(s *strings.Builder, data models.ReturnType, respType s
 		str := strings.Split(bodyRemovedLastChar, "/")
 		insideGenericsFullName := str[len(str)-1] // testutil.TestGeneric
 
-		pkg := strings.Split(insideGenericsFullName, ".")[0] // testutil
-
 		insidePkg := strings.Split(bodyRemovedLastChar, "[[]")[1]                 // github.com/diegoclair/goswag/internal/generator/testutil.TestGeneric
 		removedType := strings.Replace(insidePkg, insideGenericsFullName, "", -1) // github.com/diegoclair/goswag/internal/generator/
-		fullInsidePkg := removedType + pkg                                        // github.com/diegoclair/goswag/internal/generator/testutil
-
-		packagesToImport[fullInsidePkg] = true
 
 		correctlyResponseType := strings.Replace(bodyName, removedType, "", -1) // remove full package from the struct name
 
@@ -253,13 +263,8 @@ func writeIfIsGenericType(s *strings.Builder, data models.ReturnType, respType s
 		str := strings.Split(bodyRemovedLastChar, "/")
 		insideGenericsFullName := str[len(str)-1] // testutil.TestGeneric
 
-		pkg := strings.Split(insideGenericsFullName, ".")[0] // testutil
-
 		insidePkg := strings.Split(bodyRemovedLastChar, "[")[1]                   // github.com/diegoclair/goswag/internal/generator/testutil.TestGeneric
 		removedType := strings.Replace(insidePkg, insideGenericsFullName, "", -1) // github.com/diegoclair/goswag/internal/generator/
-		fullInsidePkg := removedType + pkg                                        // github.com/diegoclair/goswag/internal/generator/testutil
-
-		packagesToImport[fullInsidePkg] = true
 
 		correctlyResponseType := strings.Replace(bodyName, removedType, "", -1) // remove full package from the struct name
 
