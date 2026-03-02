@@ -30,7 +30,7 @@ type Route struct {
 	Tags         []string
 	Accepts      []string
 	Produces     []string
-	Reads        interface{}
+	Reads        any
 	Returns      []models.ReturnType // example: map[statusCode]responseBody
 	QueryParams  []Param
 	HeaderParams []Param
@@ -128,6 +128,7 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder, packagesT
 
 		if r.Reads != nil {
 			s.WriteString(fmt.Sprintf("// @Param request body %s true \"Request\"\n", getStructAndPackageName(r.Reads)))
+			addBodyPackageToImport(r.Reads, packagesToImport)
 		}
 
 		for _, param := range r.PathParams {
@@ -206,18 +207,23 @@ func writeGroup(groups []Group, s *strings.Builder, packagesToImport map[string]
 	}
 }
 
-// addPackageToImport adds the package to import.
-func addPackageToImport(data models.ReturnType, packagesToImport map[string]bool) {
-	if data.Body == nil {
+// addBodyPackageToImport adds the package of the given body type to the import map.
+func addBodyPackageToImport(body any, packagesToImport map[string]bool) {
+	if body == nil {
 		return
 	}
-	t := reflect.TypeOf(data.Body)
-	if t.Kind() == reflect.Ptr {
+	t := reflect.TypeOf(body)
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 	if t.PkgPath() != "" {
 		packagesToImport[t.PkgPath()] = true
 	}
+}
+
+// addPackageToImport adds the package to import.
+func addPackageToImport(data models.ReturnType, packagesToImport map[string]bool) {
+	addBodyPackageToImport(data.Body, packagesToImport)
 }
 
 // writeIfIsGenericType writes the correctly response type if it is a generic type
@@ -301,7 +307,7 @@ func handleOverrideStructFields(s *strings.Builder, data models.ReturnType) {
 }
 
 func getStructAndPackageName(body any) string {
-	isPointer := reflect.TypeOf(body).Kind() == reflect.Ptr
+	isPointer := reflect.TypeOf(body).Kind() == reflect.Pointer
 	if isPointer {
 		body = reflect.ValueOf(body).Elem().Interface()
 	}

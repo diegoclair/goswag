@@ -2,9 +2,9 @@ package models
 
 type ReturnType struct {
 	StatusCode int
-	Body       interface{}
+	Body       any
 	// example: map[jsonFieldName]fieldType{}
-	OverrideStructFields map[string]interface{}
+	OverrideStructFields map[string]any
 }
 
 type Swagger interface {
@@ -28,7 +28,7 @@ type Swagger interface {
 	Produces(produce ...string) Swagger
 
 	// Read is used to define the request body of the route.
-	Read(data interface{}) Swagger
+	Read(data any) Swagger
 
 	// Returns is used to define the return of the route.
 	// The first parameter is the status code.

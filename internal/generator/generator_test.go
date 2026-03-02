@@ -12,7 +12,7 @@ import (
 
 func TestGetStructAndPackageName(t *testing.T) {
 	type args struct {
-		body interface{}
+		body any
 	}
 	tests := []struct {
 		name string
@@ -506,7 +506,7 @@ func Test_handleOverrideStructFields(t *testing.T) {
 			name: "Should add override struct fields",
 			data: models.ReturnType{
 				Body: testutil.OverrideStruct{},
-				OverrideStructFields: map[string]interface{}{
+				OverrideStructFields: map[string]any{
 					"test": testutil.TestGeneric{},
 				},
 			},
@@ -516,7 +516,7 @@ func Test_handleOverrideStructFields(t *testing.T) {
 			name: "Should add multiple override struct fields",
 			data: models.ReturnType{
 				Body: testutil.OverrideStruct{},
-				OverrideStructFields: map[string]interface{}{
+				OverrideStructFields: map[string]any{
 					"test":  testutil.TestGeneric{},
 					"test2": testutil.TestGeneric{},
 				},

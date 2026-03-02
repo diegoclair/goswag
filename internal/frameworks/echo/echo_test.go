@@ -791,7 +791,7 @@ func TestEchoRoute_Produces(t *testing.T) {
 
 func TestEchoRoute_Read(t *testing.T) {
 	type args struct {
-		value interface{}
+		value any
 	}
 	tests := []struct {
 		name string

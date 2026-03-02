@@ -303,7 +303,7 @@ func (r *echoRoute) Produces(value ...string) models.Swagger {
 	return r
 }
 
-func (r *echoRoute) Read(value interface{}) models.Swagger {
+func (r *echoRoute) Read(value any) models.Swagger {
 	r.Route.Reads = value
 	return r
 }

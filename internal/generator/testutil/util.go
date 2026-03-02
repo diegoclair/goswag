@@ -9,5 +9,5 @@ type TestGeneric struct {
 }
 
 type OverrideStruct struct {
-	Body interface{} ` json:"body" `
+	Body any ` json:"body" `
 }

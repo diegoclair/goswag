@@ -336,7 +336,7 @@ func (r *ginRoute) Produces(produces ...string) models.Swagger {
 	return r
 }
 
-func (r *ginRoute) Read(reads interface{}) models.Swagger {
+func (r *ginRoute) Read(reads any) models.Swagger {
 	r.Route.Reads = reads
 	return r
 }
