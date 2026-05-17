@@ -97,7 +97,6 @@ func SetupRoutes(db *sql.DB) *echo.Echo {
 In order to start your router, you currently need to provide a database connection. However, this requirement is unnecessary for generating Swagger documentation.
 
 #### Recommended Approach Setup
-- Install [`swag`](https://github.com/swaggo/swag/blob/master/README.md#getting-started). It is necessary for generate swagger documents.
 - Create a folder in your root project folder named `goswag`.
 - Inside the `goswag` folder, create a file called `main.go` with package main.
 - Inside of this file, create your main function that will invoke your routerSetup.
@@ -112,22 +111,51 @@ func main() {
     ge.GenerateSwagger() //will generate your swagger
 }
 ```
-- Create a Makefile and add the following command:
+
+#### Generating the docs
+Install the `goswag` CLI once:
+```sh
+go install github.com/diegoclair/goswag/cmd/goswag@latest
+```
+Then, from your project root, run:
+```sh
+goswag docs
+```
+That single command:
+1. Runs `go run ./goswag/main.go` (generates the annotated stub).
+2. Runs `swag init --pdl=<auto> --parseInternal -g ./goswag/main.go -o ./docs`.
+3. Runs `swag fmt -d ./goswag/`.
+
+`swag` is installed automatically if it is not on your `PATH`.
+
+#### Auto-detected `--pdl`
+
+`goswag docs` picks `--pdl` for you by inspecting the imports of the generated stub: `0` if every type comes from your module, `1` if any annotation references a type from an external dependency. The chosen level is printed on each run. Override with `--pdl=N` if you need `2` or `3` (rare).
+
+#### Other flags
+
+All paths follow the convention described above; override them with flags if your layout differs:
+```sh
+goswag docs --input ./goswag --output ./docs
+# or, with shorthands:
+goswag docs -i ./goswag -o ./docs
+```
+Run `goswag docs --help` for the full list of flags.
+
+If you want a project-local entry point, a Makefile target is just:
 ```Make
 .PHONY: docs
 docs:
-    @go install github.com/swaggo/swag/cmd/swag@latest
-	@cd goswag && \
-	go run main.go && \
-	cd .. && \
-	swag init --pdl=2 --parseInternal -g ./goswag/main.go -o ./docs && \
-	swag fmt -d ./goswag/
+	@goswag docs
 ```
 
-You can now execute the `make docs` command.  
-It will generate a new `goswag.go` file inside of your `goswag` directory. This file includes all necessary handlers and comments for the Swag library to generate the Swagger files inside the `docs` directory.
+The command produces a `goswag.go` file inside your `goswag` directory containing all handler stubs and annotations, and the OpenAPI files under `./docs`.
 
-**NOTE**: after the first generation, the `doc.go` file in the `docs` folder will import Swag library. If you haven't used Swag in your project before, you'll need to run `go mod tidy` to ensure the swag package is included in your `go.mod` file. 
+**NOTE**: after the first generation, the `doc.go` file in the `docs` folder will import the Swag library. If you haven't used Swag in your project before, run `go mod tidy` to ensure the swag package is included in your `go.mod`.
+
+#### Updating
+- **CLI:** `go install github.com/diegoclair/goswag/cmd/goswag@latest`
+- **Library:** `go get -u github.com/diegoclair/goswag && go mod tidy`
 
 ## Default Response for all routes
 You can add a default responses to all routes when you instantiate the swagger.  
@@ -166,9 +194,24 @@ func handleLogout() {} //nolint:unused
 //	@Success		200
 //	@Failure		400	{object}	YourStructOfError
 //	@Failure		401	{object}	YourStructOfError
-//	@Router			/auth/logout [post]
+//	@Router			/auth/login [post]
 func handleLogin() {} //nolint:unused 
 ```
+
+## Handlers with the same name in different packages
+
+When you organize a monolith around bounded contexts (e.g. `internal/provider/.../authroute` and `internal/nexus/.../authroute`), it's natural to have handlers with identical short names — `handleLogin`, `handleLogout`, `handlePing` — in each context. Goswag automatically disambiguates these by appending a short, deterministic hash of the handler's package path to the stub function name in the generated `goswag.go`:
+
+```go
+//	@Router /provider/auth/login [post]
+func handleLogin_a3f2c9d1() {} //nolint:unused
+
+//	@Router /nexus/auth/login [post]
+func handleLogin_b71e04f8() {} //nolint:unused
+```
+
+The hash is only used as a unique Go identifier for the stub — it never leaks into the generated `swagger.json`/`swagger.yaml`, so the documentation stays clean. No action required on your side: just write `handleLogin` once per context like you normally would.
+
 `NewEcho()` and `NewGin()` includes de defaultResponses parameter as optional, then you can pass your default responses only if you want =].
 ## Example of Usage
 To see an example of usage, you can check this [repository](https://github.com/diegoclair/go_boilerplate).
