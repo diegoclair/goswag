@@ -1,6 +1,7 @@
 package gin
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/diegoclair/goswag/internal/generator"
@@ -8,6 +9,25 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
+
+// normalizeFuncName collapses the auto-generated hash suffix back to the
+// short name so tests can assert against a stable literal. getFuncName
+// always appends "_<hash>" to disambiguate identically-named handlers
+// across packages; we still validate the prefix matches what the test
+// expects.
+func normalizeFuncName(t *testing.T, want generator.Route, got generator.Route) generator.Route {
+	t.Helper()
+	if want.FuncName == "" {
+		return got
+	}
+	prefix := want.FuncName + "_"
+	if !strings.HasPrefix(got.FuncName, prefix) {
+		t.Errorf("FuncName = %q; want prefix %q", got.FuncName, prefix)
+		return got
+	}
+	got.FuncName = want.FuncName
+	return got
+}
 
 func TestNewGin(t *testing.T) {
 	t.Run("should return gin instances", func(t *testing.T) {
@@ -70,7 +90,7 @@ func TestGinSwagger_Handle(t *testing.T) {
 			g := gin.Default()
 			got := NewGin(g)
 			got.Handle(tt.args.httpMethod, tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, got.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, got.routes[0].Route))
 		})
 	}
 }
@@ -105,7 +125,7 @@ func TestGinSwagger_POST(t *testing.T) {
 			g := gin.Default()
 			got := NewGin(g)
 			got.POST(tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, got.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, got.routes[0].Route))
 		})
 	}
 }
@@ -140,7 +160,7 @@ func TestGinSwagger_GET(t *testing.T) {
 			g := gin.Default()
 			got := NewGin(g)
 			got.GET(tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, got.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, got.routes[0].Route))
 		})
 	}
 }
@@ -175,7 +195,7 @@ func TestGinSwagger_PUT(t *testing.T) {
 			g := gin.Default()
 			got := NewGin(g)
 			got.PUT(tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, got.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, got.routes[0].Route))
 		})
 	}
 }
@@ -210,7 +230,7 @@ func TestGinSwagger_DELETE(t *testing.T) {
 			g := gin.Default()
 			got := NewGin(g)
 			got.DELETE(tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, got.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, got.routes[0].Route))
 		})
 	}
 }
@@ -245,7 +265,7 @@ func TestGinSwagger_PATCH(t *testing.T) {
 			g := gin.Default()
 			got := NewGin(g)
 			got.PATCH(tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, got.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, got.routes[0].Route))
 		})
 	}
 }
@@ -280,7 +300,7 @@ func TestGinSwagger_OPTIONS(t *testing.T) {
 			g := gin.Default()
 			got := NewGin(g)
 			got.OPTIONS(tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, got.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, got.routes[0].Route))
 		})
 	}
 }
@@ -315,7 +335,7 @@ func TestGinSwagger_HEAD(t *testing.T) {
 			g := gin.Default()
 			got := NewGin(g)
 			got.HEAD(tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, got.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, got.routes[0].Route))
 		})
 	}
 }
@@ -353,7 +373,7 @@ func TestGinGroup_Handle(t *testing.T) {
 				gg: gin.Default().Group(""),
 			}
 			group := g.Handle(tt.args.httpMethod, tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, group.(*ginRoute).Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, group.(*ginRoute).Route))
 		})
 	}
 }
@@ -389,7 +409,7 @@ func TestGinGroup_POST(t *testing.T) {
 				gg: gin.Default().Group(""),
 			}
 			group := g.POST(tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, group.(*ginRoute).Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, group.(*ginRoute).Route))
 		})
 	}
 }
@@ -425,7 +445,7 @@ func TestGinGroup_GET(t *testing.T) {
 				gg: gin.Default().Group(""),
 			}
 			group := g.GET(tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, group.(*ginRoute).Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, group.(*ginRoute).Route))
 		})
 	}
 }
@@ -461,7 +481,7 @@ func TestGinGroup_PUT(t *testing.T) {
 				gg: gin.Default().Group(""),
 			}
 			group := g.PUT(tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, group.(*ginRoute).Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, group.(*ginRoute).Route))
 		})
 	}
 }
@@ -497,7 +517,7 @@ func TestGinGroup_DELETE(t *testing.T) {
 				gg: gin.Default().Group(""),
 			}
 			group := g.DELETE(tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, group.(*ginRoute).Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, group.(*ginRoute).Route))
 		})
 	}
 }
@@ -533,7 +553,7 @@ func TestGinGroup_PATCH(t *testing.T) {
 				gg: gin.Default().Group(""),
 			}
 			group := g.PATCH(tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, group.(*ginRoute).Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, group.(*ginRoute).Route))
 		})
 	}
 }
@@ -569,7 +589,7 @@ func TestGinGroup_OPTIONS(t *testing.T) {
 				gg: gin.Default().Group(""),
 			}
 			group := g.OPTIONS(tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, group.(*ginRoute).Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, group.(*ginRoute).Route))
 		})
 	}
 }
@@ -605,7 +625,7 @@ func TestGinGroup_HEAD(t *testing.T) {
 				gg: gin.Default().Group(""),
 			}
 			group := g.HEAD(tt.args.relativePath, tt.args.handlers...)
-			assert.Equal(t, tt.want, group.(*ginRoute).Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, group.(*ginRoute).Route))
 		})
 	}
 }

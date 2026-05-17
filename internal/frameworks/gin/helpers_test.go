@@ -2,6 +2,7 @@ package gin
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/diegoclair/goswag/internal/generator"
@@ -13,33 +14,31 @@ func handler2(c *gin.Context) {}
 func handler3(c *gin.Context) {}
 
 func TestGetFuncName(t *testing.T) {
-	type args struct {
-		handlers []gin.HandlerFunc
-	}
 	tests := []struct {
-		name string
-		args args
-		want string
+		name       string
+		handlers   []gin.HandlerFunc
+		wantPrefix string
 	}{
 		{
-			name: "Should return the function name of the last handler",
-			args: args{
-				handlers: []gin.HandlerFunc{handler1, handler2, handler3},
-			},
-			want: "handler3",
+			name:       "Returns last handler short name plus stable hash suffix",
+			handlers:   []gin.HandlerFunc{handler1, handler2, handler3},
+			wantPrefix: "handler3_",
 		},
 		{
-			name: "Should return the function name of the last handler",
-			args: args{
-				handlers: []gin.HandlerFunc{handler1, handler2},
-			},
-			want: "handler2",
+			name:       "Returns last handler short name plus stable hash suffix (2 handlers)",
+			handlers:   []gin.HandlerFunc{handler1, handler2},
+			wantPrefix: "handler2_",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getFuncName(tt.args.handlers...); got != tt.want {
-				t.Errorf("getFuncName() = %v, want %v", got, tt.want)
+			got := getFuncName(tt.handlers...)
+			if !strings.HasPrefix(got, tt.wantPrefix) {
+				t.Fatalf("getFuncName() = %q; want prefix %q", got, tt.wantPrefix)
+			}
+			suffix := got[len(tt.wantPrefix):]
+			if len(suffix) != 8 {
+				t.Fatalf("getFuncName() suffix = %q; want 8-char hash", suffix)
 			}
 		})
 	}

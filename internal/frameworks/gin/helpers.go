@@ -6,23 +6,19 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/diegoclair/goswag/internal/frameworks/shared"
 	"github.com/diegoclair/goswag/internal/generator"
 	"github.com/gin-gonic/gin"
 )
 
-// getFuncName retrieves the name of the function associated with the last handler in the given list of gin.HandlerFunc.
-// It uses the reflect package to obtain the function name from the pointer value of the last handler.
-// The function name is extracted by splitting the full function name string using the dot separator and returning the last element.
-// The retrieved function name is then returned as a string.
+// getFuncName resolves the last handler in the chain to a unique Go
+// identifier. The last handler is the one that defines the route (earlier
+// entries are middlewares). See shared.UniqueIdentifier for the rationale
+// behind the disambiguation suffix.
 func getFuncName(handlers ...gin.HandlerFunc) string {
 	lastHandler := handlers[len(handlers)-1]
-
 	fullFuncName := runtime.FuncForPC(reflect.ValueOf(lastHandler).Pointer()).Name()
-	funcNameSplit := strings.Split(fullFuncName, ".")
-	funcName := funcNameSplit[len(funcNameSplit)-1]
-	funcName = strings.TrimSuffix(funcName, "-fm")
-
-	return funcName
+	return shared.UniqueIdentifier(fullFuncName)
 }
 
 // toGoSwagRoute converts a slice of ginRoute to a slice of generator.Route.

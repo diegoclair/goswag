@@ -1,19 +1,15 @@
 package echo
 
 import (
-	"strings"
-
+	"github.com/diegoclair/goswag/internal/frameworks/shared"
 	"github.com/diegoclair/goswag/internal/generator"
 )
 
+// getFuncName returns a unique Go identifier for the handler whose fully
+// qualified name is the input string. See shared.UniqueIdentifier for the
+// rationale (collision avoidance across packages with same short name).
 func getFuncName(name string) string {
-	// echo has a method to get the function name, but it returns the full path of the function
-	// we need to remove the package path and the "-fm" suffix
-	fullFuncName := strings.TrimSuffix(name, "-fm")
-	funcNameSplit := strings.Split(fullFuncName, ".")
-	funcName := funcNameSplit[len(funcNameSplit)-1]
-
-	return funcName
+	return shared.UniqueIdentifier(name)
 }
 
 // toGoSwagRoute converts a slice of echoRoute to a slice of generator.Route.

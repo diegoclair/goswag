@@ -1,6 +1,7 @@
 package echo
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/diegoclair/goswag/internal/generator"
@@ -8,6 +9,25 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
+
+// normalizeFuncName collapses the auto-generated hash suffix back to the
+// short name so tests can assert against a stable literal. getFuncName
+// always appends "_<hash>" to disambiguate identically-named handlers
+// across packages; we still validate the prefix matches what the test
+// expects.
+func normalizeFuncName(t *testing.T, want generator.Route, got generator.Route) generator.Route {
+	t.Helper()
+	if want.FuncName == "" {
+		return got
+	}
+	prefix := want.FuncName + "_"
+	if !strings.HasPrefix(got.FuncName, prefix) {
+		t.Errorf("FuncName = %q; want prefix %q", got.FuncName, prefix)
+		return got
+	}
+	got.FuncName = want.FuncName
+	return got
+}
 
 func TestNewEcho(t *testing.T) {
 	t.Run("should return echo instances", func(t *testing.T) {
@@ -96,7 +116,7 @@ func TestEchoSwagger_GET(t *testing.T) {
 			got := s.GET(tt.args.path, tt.args.h, tt.args.m...)
 			assert.NotNil(t, got)
 
-			assert.Equal(t, tt.want, s.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, s.routes[0].Route))
 		})
 	}
 }
@@ -134,7 +154,7 @@ func TestEchoSwagger_POST(t *testing.T) {
 			got := s.POST(tt.args.path, tt.args.h, tt.args.m...)
 			assert.NotNil(t, got)
 
-			assert.Equal(t, tt.want, s.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, s.routes[0].Route))
 		})
 	}
 }
@@ -172,7 +192,7 @@ func TestEchoSwagger_PUT(t *testing.T) {
 			got := s.PUT(tt.args.path, tt.args.h, tt.args.m...)
 			assert.NotNil(t, got)
 
-			assert.Equal(t, tt.want, s.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, s.routes[0].Route))
 		})
 	}
 }
@@ -210,7 +230,7 @@ func TestEchoSwagger_DELETE(t *testing.T) {
 			got := s.DELETE(tt.args.path, tt.args.h, tt.args.m...)
 			assert.NotNil(t, got)
 
-			assert.Equal(t, tt.want, s.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, s.routes[0].Route))
 		})
 	}
 }
@@ -248,7 +268,7 @@ func TestEchoSwagger_PATCH(t *testing.T) {
 			got := s.PATCH(tt.args.path, tt.args.h, tt.args.m...)
 			assert.NotNil(t, got)
 
-			assert.Equal(t, tt.want, s.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, s.routes[0].Route))
 		})
 	}
 }
@@ -286,7 +306,7 @@ func TestEchoSwagger_OPTIONS(t *testing.T) {
 			got := s.OPTIONS(tt.args.path, tt.args.h, tt.args.m...)
 			assert.NotNil(t, got)
 
-			assert.Equal(t, tt.want, s.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, s.routes[0].Route))
 		})
 	}
 }
@@ -324,7 +344,7 @@ func TestEchoSwagger_HEAD(t *testing.T) {
 			got := s.HEAD(tt.args.path, tt.args.h, tt.args.m...)
 			assert.NotNil(t, got)
 
-			assert.Equal(t, tt.want, s.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, s.routes[0].Route))
 		})
 	}
 }
@@ -396,7 +416,7 @@ func TestEchoGroup_GET(t *testing.T) {
 			got := g.GET(tt.args.path, tt.args.h, tt.args.m...)
 			assert.NotNil(t, got)
 
-			assert.Equal(t, tt.want, g.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, g.routes[0].Route))
 		})
 	}
 }
@@ -434,7 +454,7 @@ func TestEchoGroup_POST(t *testing.T) {
 			got := g.POST(tt.args.path, tt.args.h, tt.args.m...)
 			assert.NotNil(t, got)
 
-			assert.Equal(t, tt.want, g.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, g.routes[0].Route))
 		})
 	}
 }
@@ -472,7 +492,7 @@ func TestEchoGroup_PUT(t *testing.T) {
 			got := g.PUT(tt.args.path, tt.args.h, tt.args.m...)
 			assert.NotNil(t, got)
 
-			assert.Equal(t, tt.want, g.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, g.routes[0].Route))
 		})
 	}
 }
@@ -510,7 +530,7 @@ func TestEchoGroup_DELETE(t *testing.T) {
 			got := g.DELETE(tt.args.path, tt.args.h, tt.args.m...)
 			assert.NotNil(t, got)
 
-			assert.Equal(t, tt.want, g.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, g.routes[0].Route))
 		})
 	}
 }
@@ -548,7 +568,7 @@ func TestEchoGroup_PATCH(t *testing.T) {
 			got := g.PATCH(tt.args.path, tt.args.h, tt.args.m...)
 			assert.NotNil(t, got)
 
-			assert.Equal(t, tt.want, g.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, g.routes[0].Route))
 		})
 	}
 }
@@ -586,7 +606,7 @@ func TestEchoGroup_OPTIONS(t *testing.T) {
 			got := g.OPTIONS(tt.args.path, tt.args.h, tt.args.m...)
 			assert.NotNil(t, got)
 
-			assert.Equal(t, tt.want, g.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, g.routes[0].Route))
 		})
 	}
 }
@@ -624,7 +644,7 @@ func TestEchoGroup_HEAD(t *testing.T) {
 			got := g.HEAD(tt.args.path, tt.args.h, tt.args.m...)
 			assert.NotNil(t, got)
 
-			assert.Equal(t, tt.want, g.routes[0].Route)
+			assert.Equal(t, tt.want, normalizeFuncName(t, tt.want, g.routes[0].Route))
 		})
 	}
 }

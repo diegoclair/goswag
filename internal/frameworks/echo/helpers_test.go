@@ -1,32 +1,19 @@
 package echo
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/diegoclair/goswag/internal/generator"
 )
 
+// Test_getFuncName is a smoke test: the heavy lifting (collision handling,
+// determinism, edge cases) is verified in internal/frameworks/shared. Here
+// we just confirm the echo wrapper actually delegates to it.
 func Test_getFuncName(t *testing.T) {
-	type args struct {
-		name string
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "Should return the function name",
-			args: args{name: "github.com/diegoclair/goswag/internal/frameworks/echo.(*Echo).GET-fm"},
-			want: "GET",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := getFuncName(tt.args.name); got != tt.want {
-				t.Errorf("getFuncName() = %v, want %v", got, tt.want)
-			}
-		})
+	got := getFuncName("github.com/diegoclair/goswag/internal/frameworks/echo.(*Echo).GET-fm")
+	if !strings.HasPrefix(got, "GET_") || len(got) != len("GET_")+8 {
+		t.Fatalf("getFuncName did not produce expected disambiguated identifier: %q", got)
 	}
 }
 
