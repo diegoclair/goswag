@@ -18,7 +18,7 @@
     <a href="https://opensource.org/licenses/MIT">
      <img src="https://img.shields.io/badge/License-MIT-yellow.svg" />
     </a>
-    <a href='https://goreportcard.com/badge/github.com/diegoclair/goswag'>
+    <a href="https://goreportcard.com/report/github.com/diegoclair/goswag">
      <img src='https://goreportcard.com/badge/github.com/diegoclair/goswag' alt='Go Report'/>
     </a>
 </p>
