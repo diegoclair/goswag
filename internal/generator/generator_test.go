@@ -729,6 +729,70 @@ func Test_addPackageToImport(t *testing.T) {
 				"github.com/diegoclair/goswag/models": true,
 			},
 		},
+		{
+			name: "Should add package for a plain slice",
+			data: models.ReturnType{
+				Body: []testutil.TestGeneric{},
+			},
+			initialPkgs: make(map[string]bool),
+			expectedPkgs: map[string]bool{
+				"github.com/diegoclair/goswag/internal/generator/testutil": true,
+			},
+		},
+		{
+			name: "Should add both packages for a generic type argument from another package",
+			data: models.ReturnType{
+				Body: testutil.StructGeneric[models.ReturnType]{},
+			},
+			initialPkgs: make(map[string]bool),
+			expectedPkgs: map[string]bool{
+				"github.com/diegoclair/goswag/internal/generator/testutil": true,
+				"github.com/diegoclair/goswag/models":                      true,
+			},
+		},
+		{
+			name: "Should add both packages for a generic wrapping a slice from another package",
+			data: models.ReturnType{
+				Body: testutil.StructGeneric[[]models.ReturnType]{},
+			},
+			initialPkgs: make(map[string]bool),
+			expectedPkgs: map[string]bool{
+				"github.com/diegoclair/goswag/internal/generator/testutil": true,
+				"github.com/diegoclair/goswag/models":                      true,
+			},
+		},
+		{
+			name: "Should add package for a slice of pointers",
+			data: models.ReturnType{
+				Body: []*models.ReturnType{},
+			},
+			initialPkgs: make(map[string]bool),
+			expectedPkgs: map[string]bool{
+				"github.com/diegoclair/goswag/models": true,
+			},
+		},
+		{
+			name: "Should add packages from both sides of a map",
+			data: models.ReturnType{
+				Body: map[testutil.TestGeneric]models.ReturnType{},
+			},
+			initialPkgs: make(map[string]bool),
+			expectedPkgs: map[string]bool{
+				"github.com/diegoclair/goswag/internal/generator/testutil": true,
+				"github.com/diegoclair/goswag/models":                      true,
+			},
+		},
+		{
+			name: "Should add every package in a nested generic",
+			data: models.ReturnType{
+				Body: testutil.StructGeneric[testutil.StructGeneric[[]models.ReturnType]]{},
+			},
+			initialPkgs: make(map[string]bool),
+			expectedPkgs: map[string]bool{
+				"github.com/diegoclair/goswag/internal/generator/testutil": true,
+				"github.com/diegoclair/goswag/models":                      true,
+			},
+		},
 	}
 
 	for _, tt := range tests {

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/diegoclair/goswag/models"
@@ -207,17 +208,47 @@ func writeGroup(groups []Group, s *strings.Builder, packagesToImport map[string]
 	}
 }
 
-// addBodyPackageToImport adds the package of the given body type to the import map.
+// genericArgPkgRe matches a fully-qualified package path followed by a type name, e.g.
+// "github.com/foo/bar.Type". reflect renders generic type arguments this way (full path)
+// while the outer type keeps its short package name, which is how we tell them apart.
+var genericArgPkgRe = regexp.MustCompile(`([\w.\-]+(?:/[\w.\-]+)+)\.\w+`)
+
+// addBodyPackageToImport adds every package the body's type depends on to the import map:
+// the type itself, its slice/array element, and any package named inside generic type
+// arguments (reflect exposes no API to walk those, so we parse them out of t.String()).
 func addBodyPackageToImport(body any, packagesToImport map[string]bool) {
 	if body == nil {
 		return
 	}
+
 	t := reflect.TypeOf(body)
 	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
+
+	collectPackages(t, packagesToImport)
+
+	for _, match := range genericArgPkgRe.FindAllStringSubmatch(t.String(), -1) {
+		packagesToImport[match[1]] = true
+	}
+}
+
+// collectPackages walks the containers a body can be wrapped in — []T, [n]T, *T,
+// map[K]V — until it reaches named types, which are the ones needing an import.
+// It stops at named types instead of descending into their fields: those resolve
+// through their own package, and a self-referencing struct would not terminate.
+func collectPackages(t reflect.Type, packagesToImport map[string]bool) {
 	if t.PkgPath() != "" {
 		packagesToImport[t.PkgPath()] = true
+		return
+	}
+
+	switch t.Kind() {
+	case reflect.Pointer, reflect.Slice, reflect.Array:
+		collectPackages(t.Elem(), packagesToImport)
+	case reflect.Map:
+		collectPackages(t.Key(), packagesToImport)
+		collectPackages(t.Elem(), packagesToImport)
 	}
 }
 
