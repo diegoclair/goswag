@@ -116,9 +116,9 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder, packagesT
 		addTextIfNotEmptyOrDefault(s, r.Summary, "// @Description %s\n", r.Description)
 
 		if len(r.Tags) > 0 {
-			s.WriteString(fmt.Sprintf("// @Tags %s\n", strings.Join(r.Tags, ",")))
+			fmt.Fprintf(s, "// @Tags %s\n", strings.Join(r.Tags, ","))
 		} else if groupName != "" {
-			s.WriteString(fmt.Sprintf("// @Tags %s\n", groupName))
+			fmt.Fprintf(s, "// @Tags %s\n", groupName)
 		}
 
 		if r.Method == http.MethodPost || r.Method == http.MethodPut {
@@ -132,26 +132,23 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder, packagesT
 		}
 
 		if r.Reads != nil {
-			s.WriteString(fmt.Sprintf("// @Param request body %s true \"Request\"\n", annotationTypeName(r.Reads, ambiguous)))
+			fmt.Fprintf(s, "// @Param request body %s true \"Request\"\n", annotationTypeName(r.Reads, ambiguous))
 			addBodyPackageToImport(r.Reads, packagesToImport)
 		}
 
 		for _, param := range r.PathParams {
-			s.WriteString(fmt.Sprintf("// @Param %s path %s %t \"%s\"\n",
-				param.Name, param.ParamType, param.Required, param.Description),
-			)
+			fmt.Fprintf(s, "// @Param %s path %s %t \"%s\"\n",
+				param.Name, param.ParamType, param.Required, param.Description)
 		}
 
 		for _, param := range r.QueryParams {
-			s.WriteString(fmt.Sprintf("// @Param %s query %s %t \"%s\"\n",
-				param.Name, param.ParamType, param.Required, param.Description),
-			)
+			fmt.Fprintf(s, "// @Param %s query %s %t \"%s\"\n",
+				param.Name, param.ParamType, param.Required, param.Description)
 		}
 
 		for _, param := range r.HeaderParams {
-			s.WriteString(fmt.Sprintf("// @Param %s header %s %t \"%s\"\n",
-				param.Name, param.ParamType, param.Required, param.Description),
-			)
+			fmt.Fprintf(s, "// @Param %s header %s %t \"%s\"\n",
+				param.Name, param.ParamType, param.Required, param.Description)
 		}
 
 		if r.Returns != nil {
@@ -159,11 +156,11 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder, packagesT
 		}
 
 		if r.Path != "" {
-			s.WriteString(fmt.Sprintf("// @Router %s [%s]\n", r.Path, strings.ToLower(r.Method)))
+			fmt.Fprintf(s, "// @Router %s [%s]\n", r.Path, strings.ToLower(r.Method))
 		}
 
 		if r.FuncName != "" {
-			s.WriteString(fmt.Sprintf("func %s() {} //nolint:unused \n", r.FuncName))
+			fmt.Fprintf(s, "func %s() {} //nolint:unused \n", r.FuncName)
 		}
 
 		s.WriteString("\n")
@@ -184,11 +181,11 @@ func writeReturns(returns []models.ReturnType, s *strings.Builder, packagesToImp
 		}
 
 		if data.Body == nil {
-			s.WriteString(fmt.Sprintf("// %s %d\n", respType, data.StatusCode))
+			fmt.Fprintf(s, "// %s %d\n", respType, data.StatusCode)
 			continue
 		}
 
-		s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, annotationTypeName(data.Body, ambiguous)))
+		fmt.Fprintf(s, "// %s %d {object} %s", respType, data.StatusCode, annotationTypeName(data.Body, ambiguous))
 
 		addPackageToImport(data, packagesToImport)
 		handleOverrideStructFields(s, data, ambiguous)
@@ -392,7 +389,7 @@ func handleOverrideStructFields(s *strings.Builder, data models.ReturnType, ambi
 				s.WriteString("{")
 			}
 
-			s.WriteString(fmt.Sprintf("%s=%s", key, annotationTypeName(data.OverrideStructFields[key], ambiguous)))
+			fmt.Fprintf(s, "%s=%s", key, annotationTypeName(data.OverrideStructFields[key], ambiguous))
 			if i == len(data.OverrideStructFields)-1 {
 				s.WriteString("}")
 			} else {
@@ -417,18 +414,18 @@ func sortedKeys[V any](m map[string]V) []string {
 func addTextIfNotEmptyOrDefault(s *strings.Builder, defaultText, format string, text ...string) {
 	if text != nil {
 		if len(text) >= 1 && strings.TrimSpace(text[0]) != "" {
-			s.WriteString(fmt.Sprintf(format, strings.Join(text, ",")))
+			fmt.Fprintf(s, format, strings.Join(text, ","))
 			return
 		}
 	}
 
 	if defaultText != "" {
-		s.WriteString(fmt.Sprintf(format, defaultText))
+		fmt.Fprintf(s, format, defaultText)
 	}
 }
 
 func addLineIfNotEmpty(s *strings.Builder, data, format string) {
 	if data != "" {
-		s.WriteString(fmt.Sprintf(format, data))
+		fmt.Fprintf(s, format, data)
 	}
 }
