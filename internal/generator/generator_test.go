@@ -6,40 +6,177 @@ import (
 	"testing"
 
 	"github.com/diegoclair/goswag/internal/generator/testutil"
+	viewmodelA "github.com/diegoclair/goswag/internal/generator/testutil/apia/viewmodel"
+	viewmodelB "github.com/diegoclair/goswag/internal/generator/testutil/apib/viewmodel"
 	"github.com/diegoclair/goswag/models"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetStructAndPackageName(t *testing.T) {
-	type args struct {
-		body any
-	}
+const (
+	mangledPkgA = "github_com_diegoclair_goswag_internal_generator_testutil_apia_viewmodel"
+	mangledPkgB = "github_com_diegoclair_goswag_internal_generator_testutil_apib_viewmodel"
+)
+
+func TestAnnotationTypeName(t *testing.T) {
+	ambiguous := map[string]bool{"viewmodel.LoginResponse": true}
+
 	tests := []struct {
-		name string
-		args args
-		want string
+		name      string
+		body      any
+		ambiguous map[string]bool
+		want      string
 	}{
 		{
 			name: "Should return the struct name and package name",
-			args: args{
-				body: models.ReturnType{},
-			},
+			body: models.ReturnType{},
 			want: "models.ReturnType",
 		},
 		{
 			name: "Should not return * if the struct is a pointer",
-			args: args{
-				body: &models.ReturnType{},
-			},
+			body: &models.ReturnType{},
 			want: "models.ReturnType",
+		},
+		{
+			name: "Should keep the slice prefix",
+			body: []models.ReturnType{},
+			want: "[]models.ReturnType",
+		},
+		{
+			name: "Should shorten the package of a generic argument",
+			body: testutil.StructGeneric[testutil.TestGeneric]{},
+			want: "testutil.StructGeneric[testutil.TestGeneric]",
+		},
+		{
+			name: "Should shorten the package of a sliced generic argument",
+			body: testutil.StructGeneric[[]testutil.TestGeneric]{},
+			want: "testutil.StructGeneric[[]testutil.TestGeneric]",
+		},
+		{
+			name: "Should keep a primitive generic argument as is",
+			body: testutil.StructGeneric[int]{},
+			want: "testutil.StructGeneric[int]",
+		},
+		{
+			name:      "Should use the full package path when the name is ambiguous",
+			body:      viewmodelA.LoginResponse{},
+			ambiguous: ambiguous,
+			want:      mangledPkgA + ".LoginResponse",
+		},
+		{
+			name:      "Should use the full package path of the other package too",
+			body:      viewmodelB.LoginResponse{},
+			ambiguous: ambiguous,
+			want:      mangledPkgB + ".LoginResponse",
+		},
+		{
+			name:      "Should keep an unambiguous name short in the ambiguous package",
+			body:      viewmodelA.OnlyInA{},
+			ambiguous: ambiguous,
+			want:      "viewmodel.OnlyInA",
+		},
+		{
+			name:      "Should use the full package path inside a generic argument",
+			body:      testutil.StructGeneric[[]viewmodelB.LoginResponse]{},
+			ambiguous: ambiguous,
+			want:      "testutil.StructGeneric[[]" + mangledPkgB + ".LoginResponse]",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := getStructAndPackageName(tt.args.body)
+			got := annotationTypeName(tt.body, tt.ambiguous)
 			assert.Equal(t, tt.want, got)
 		})
 	}
+}
+
+func TestAmbiguousTypeNames(t *testing.T) {
+	tests := []struct {
+		name   string
+		routes []Route
+		groups []Group
+		want   map[string]bool
+	}{
+		{
+			name: "Should find no ambiguity when every name has a single package",
+			routes: []Route{
+				{Reads: viewmodelA.LoginResponse{}, Returns: []models.ReturnType{{StatusCode: 200, Body: viewmodelA.OnlyInA{}}}},
+			},
+			want: map[string]bool{},
+		},
+		{
+			name: "Should find the name declared by two packages",
+			groups: []Group{
+				{Routes: []Route{{Returns: []models.ReturnType{{StatusCode: 200, Body: viewmodelA.LoginResponse{}}}}}},
+				{Groups: []Group{{Routes: []Route{{Reads: viewmodelB.LoginResponse{}}}}}},
+			},
+			want: map[string]bool{"viewmodel.LoginResponse": true},
+		},
+		{
+			name: "Should find the name when it only shows up as a generic argument",
+			routes: []Route{
+				{Returns: []models.ReturnType{
+					{StatusCode: 200, Body: testutil.StructGeneric[[]viewmodelA.LoginResponse]{}},
+					{StatusCode: 201, Body: testutil.StructGeneric[viewmodelB.LoginResponse]{}},
+				}},
+			},
+			want: map[string]bool{"viewmodel.LoginResponse": true},
+		},
+		{
+			name: "Should find the name declared in an overridden field",
+			routes: []Route{
+				{Returns: []models.ReturnType{
+					{StatusCode: 200, Body: viewmodelA.LoginResponse{}},
+					{StatusCode: 201, Body: testutil.OverrideStruct{}, OverrideStructFields: map[string]any{"body": viewmodelB.LoginResponse{}}},
+				}},
+			},
+			want: map[string]bool{"viewmodel.LoginResponse": true},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := ambiguousTypeNames(tt.routes, tt.groups)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+// Two bounded contexts declaring the same response type is the case that used to make
+// swag answer both routes with whichever package its import scan reached first.
+func TestWriteGroup_sameTypeNameInTwoPackages(t *testing.T) {
+	groups := []Group{
+		{
+			GroupName: "a",
+			Routes: []Route{{
+				Path:    "/a/login",
+				Method:  "POST",
+				Reads:   viewmodelA.LoginResponse{},
+				Returns: []models.ReturnType{{StatusCode: 200, Body: viewmodelA.LoginResponse{}}},
+			}},
+		},
+		{
+			GroupName: "b",
+			Routes: []Route{{
+				Path:    "/b/login",
+				Method:  "POST",
+				Reads:   viewmodelB.LoginResponse{},
+				Returns: []models.ReturnType{{StatusCode: 200, Body: viewmodelB.LoginResponse{}}},
+			}},
+		},
+	}
+
+	var b strings.Builder
+	writeGroup(groups, &b, map[string]bool{}, ambiguousTypeNames(nil, groups))
+
+	assert.Equal(t,
+		"// @Tags a\n// @Accept json\n// @Produce json\n"+
+			"// @Param request body "+mangledPkgA+".LoginResponse true \"Request\"\n"+
+			"// @Success 200 {object} "+mangledPkgA+".LoginResponse\n"+
+			"// @Router /a/login [post]\n\n"+
+			"// @Tags b\n// @Accept json\n// @Produce json\n"+
+			"// @Param request body "+mangledPkgB+".LoginResponse true \"Request\"\n"+
+			"// @Success 200 {object} "+mangledPkgB+".LoginResponse\n"+
+			"// @Router /b/login [post]\n\n",
+		b.String())
 }
 
 func TestAddLineIfNotEmpty(t *testing.T) {
@@ -234,7 +371,7 @@ func TestWriteGroup(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			var b strings.Builder
-			writeGroup(tt.groups, &b, map[string]bool{})
+			writeGroup(tt.groups, &b, map[string]bool{}, nil)
 
 			assert.Equal(t, tt.expectedStringBuilder, b.String())
 		})
@@ -417,7 +554,7 @@ func TestWriteRoutes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			var b strings.Builder
-			writeRoutes(tt.groupName, tt.routes, &b, map[string]bool{})
+			writeRoutes(tt.groupName, tt.routes, &b, map[string]bool{}, nil)
 
 			assert.Equal(t, tt.expectedStringBuilder, b.String())
 		})
@@ -483,7 +620,7 @@ func TestWriteReturns(t *testing.T) {
 				pkgs = make(map[string]bool)
 			)
 
-			writeReturns(tt.returns, &b, pkgs)
+			writeReturns(tt.returns, &b, pkgs, nil)
 
 			assert.Equal(t, tt.expectedStringBuilder, b.String())
 			assert.Equal(t, tt.expectedPackages, pkgs)
@@ -529,7 +666,7 @@ func Test_handleOverrideStructFields(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			var b strings.Builder
-			handleOverrideStructFields(&b, tt.data)
+			handleOverrideStructFields(&b, tt.data, nil)
 
 			assert.Equal(t, tt.expectedStringBuilder, b.String())
 		})

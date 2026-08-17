@@ -6,8 +6,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/diegoclair/goswag/models"
@@ -54,12 +56,14 @@ func GenerateSwagger(routes []Route, groups []Group, defaultResponses []models.R
 
 	routes, groups = addDefaultResponses(routes, groups, defaultResponses)
 
+	ambiguous := ambiguousTypeNames(routes, groups)
+
 	if routes != nil {
-		writeRoutes("", routes, fullFileContent, packagesToImport)
+		writeRoutes("", routes, fullFileContent, packagesToImport, ambiguous)
 	}
 
 	if groups != nil {
-		writeGroup(groups, fullFileContent, packagesToImport)
+		writeGroup(groups, fullFileContent, packagesToImport, ambiguous)
 	}
 
 	f, err := os.Create(fmt.Sprintf("./%s", fileName))
@@ -96,7 +100,7 @@ func writeFileContent(file io.Writer, content string, packagesToImport map[strin
 	if len(packagesToImport) > 0 {
 		fmt.Fprintf(file, "import (\n")
 
-		for pkg := range packagesToImport {
+		for _, pkg := range sortedKeys(packagesToImport) {
 			fmt.Fprintf(file, "\t_ \"%s\"\n", pkg)
 		}
 
@@ -106,7 +110,7 @@ func writeFileContent(file io.Writer, content string, packagesToImport map[strin
 	fmt.Fprintf(file, "%s", content)
 }
 
-func writeRoutes(groupName string, routes []Route, s *strings.Builder, packagesToImport map[string]bool) {
+func writeRoutes(groupName string, routes []Route, s *strings.Builder, packagesToImport, ambiguous map[string]bool) {
 	for _, r := range routes {
 		addLineIfNotEmpty(s, r.Summary, "// @Summary %s\n")
 		addTextIfNotEmptyOrDefault(s, r.Summary, "// @Description %s\n", r.Description)
@@ -128,7 +132,7 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder, packagesT
 		}
 
 		if r.Reads != nil {
-			s.WriteString(fmt.Sprintf("// @Param request body %s true \"Request\"\n", getStructAndPackageName(r.Reads)))
+			s.WriteString(fmt.Sprintf("// @Param request body %s true \"Request\"\n", annotationTypeName(r.Reads, ambiguous)))
 			addBodyPackageToImport(r.Reads, packagesToImport)
 		}
 
@@ -151,7 +155,7 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder, packagesT
 		}
 
 		if r.Returns != nil {
-			writeReturns(r.Returns, s, packagesToImport)
+			writeReturns(r.Returns, s, packagesToImport, ambiguous)
 		}
 
 		if r.Path != "" {
@@ -166,7 +170,7 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder, packagesT
 	}
 }
 
-func writeReturns(returns []models.ReturnType, s *strings.Builder, packagesToImport map[string]bool) {
+func writeReturns(returns []models.ReturnType, s *strings.Builder, packagesToImport, ambiguous map[string]bool) {
 	for _, data := range returns {
 		if data.StatusCode == 0 {
 			continue
@@ -184,26 +188,21 @@ func writeReturns(returns []models.ReturnType, s *strings.Builder, packagesToImp
 			continue
 		}
 
-		var isGeneric bool = writeIfIsGenericType(s, data, respType)
-
-		if !isGeneric {
-			// if it is not a generic type, we can write the response normally
-			s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, getStructAndPackageName(data.Body)))
-		}
+		s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, annotationTypeName(data.Body, ambiguous)))
 
 		addPackageToImport(data, packagesToImport)
-		handleOverrideStructFields(s, data)
+		handleOverrideStructFields(s, data, ambiguous)
 
 		s.WriteString("\n")
 	}
 }
 
-func writeGroup(groups []Group, s *strings.Builder, packagesToImport map[string]bool) {
+func writeGroup(groups []Group, s *strings.Builder, packagesToImport, ambiguous map[string]bool) {
 	for _, g := range groups {
-		writeRoutes(g.GroupName, g.Routes, s, packagesToImport)
+		writeRoutes(g.GroupName, g.Routes, s, packagesToImport, ambiguous)
 
 		if g.Groups != nil {
-			writeGroup(g.Groups, s, packagesToImport)
+			writeGroup(g.Groups, s, packagesToImport, ambiguous)
 		}
 	}
 }
@@ -211,7 +210,7 @@ func writeGroup(groups []Group, s *strings.Builder, packagesToImport map[string]
 // genericArgPkgRe matches a fully-qualified package path followed by a type name, e.g.
 // "github.com/foo/bar.Type". reflect renders generic type arguments this way (full path)
 // while the outer type keeps its short package name, which is how we tell them apart.
-var genericArgPkgRe = regexp.MustCompile(`([\w.\-]+(?:/[\w.\-]+)+)\.\w+`)
+var genericArgPkgRe = regexp.MustCompile(`([\w.\-]+(?:/[\w.\-]+)+)\.(\w+)`)
 
 // addBodyPackageToImport adds every package the body's type depends on to the import map:
 // the type itself, its slice/array element, and any package named inside generic type
@@ -257,93 +256,162 @@ func addPackageToImport(data models.ReturnType, packagesToImport map[string]bool
 	addBodyPackageToImport(data.Body, packagesToImport)
 }
 
-// writeIfIsGenericType writes the correctly response type if it is a generic type
-// and returns the packages to import that need to be added to the goswag.go file to make it work
-func writeIfIsGenericType(s *strings.Builder, data models.ReturnType, respType string) (isGeneric bool) {
-	bodyName := getStructAndPackageName(data.Body)
+// ambiguousTypeNames returns the short names ("pkg.Type") that more than one package
+// declares among the referenced bodies. swag resolves a short name by scanning the
+// imports of the generated file, so those names would otherwise be answered by
+// whichever package it happens to look at first.
+func ambiguousTypeNames(routes []Route, groups []Group) map[string]bool {
+	// One package per name is enough to decide: the second distinct one already
+	// answers the question, and keeping the whole set would allocate a map per
+	// type name on a route table that can be very large.
+	firstPkg := map[string]string{}
+	ambiguous := map[string]bool{}
 
-	// generic last character here will be ']'
-	// testutil.StructGeneric[testutil.TestGeneric]
-	isGeneric = bodyName[len(bodyName)-1:] == "]"
-	if !isGeneric {
-		return
+	addBody := func(body any) {
+		for shortName, pkgPath := range typeNamesOf(body) {
+			switch seen, ok := firstPkg[shortName]; {
+			case !ok:
+				firstPkg[shortName] = pkgPath
+			case seen != pkgPath:
+				ambiguous[shortName] = true
+			}
+		}
 	}
 
-	isArray := strings.Contains(bodyName, "[[]")
-	hasSlash := strings.Contains(bodyName, "/")
+	var walk func(routes []Route, groups []Group)
+	walk = func(routes []Route, groups []Group) {
+		for _, r := range routes {
+			addBody(r.Reads)
 
-	if isArray && hasSlash {
-		// example: testutil.StructGeneric[[]github.com/diegoclair/goswag/internal/generator/testutil.TestGeneric]
+			for _, ret := range r.Returns {
+				addBody(ret.Body)
 
-		bodyRemovedLastChar := bodyName[:len(bodyName)-1] // testutil.StructGeneric[[]github.com/diegoclair/goswag/internal/generator/testutil.TestGeneric
+				for _, override := range ret.OverrideStructFields {
+					addBody(override)
+				}
+			}
+		}
 
-		// get the last text after '/'
-		str := strings.Split(bodyRemovedLastChar, "/")
-		insideGenericsFullName := str[len(str)-1] // testutil.TestGeneric
-
-		insidePkg := strings.Split(bodyRemovedLastChar, "[[]")[1]                 // github.com/diegoclair/goswag/internal/generator/testutil.TestGeneric
-		removedType := strings.Replace(insidePkg, insideGenericsFullName, "", -1) // github.com/diegoclair/goswag/internal/generator/
-
-		correctlyResponseType := strings.Replace(bodyName, removedType, "", -1) // remove full package from the struct name
-
-		s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, correctlyResponseType))
-
-		return isGeneric
+		for _, g := range groups {
+			walk(g.Routes, g.Groups)
+		}
 	}
+	walk(routes, groups)
 
-	if hasSlash {
-		// example: testutil.StructGeneric[github.com/diegoclair/goswag/internal/generator/testutil.TestGeneric]
-
-		bodyRemovedLastChar := bodyName[:len(bodyName)-1] // testutil.StructGeneric[github.com/diegoclair/goswag/internal/generator/testutil.TestGeneric
-
-		// get the last text after '/'
-		str := strings.Split(bodyRemovedLastChar, "/")
-		insideGenericsFullName := str[len(str)-1] // testutil.TestGeneric
-
-		insidePkg := strings.Split(bodyRemovedLastChar, "[")[1]                   // github.com/diegoclair/goswag/internal/generator/testutil.TestGeneric
-		removedType := strings.Replace(insidePkg, insideGenericsFullName, "", -1) // github.com/diegoclair/goswag/internal/generator/
-
-		correctlyResponseType := strings.Replace(bodyName, removedType, "", -1) // remove full package from the struct name
-
-		s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, correctlyResponseType))
-
-		return isGeneric
-	}
-
-	// example: genericStruct[int] or genericStruct[string] or genericStruct[bool]
-	// primitive types do not need to import packages
-
-	s.WriteString(fmt.Sprintf("// %s %d {object} %s", respType, data.StatusCode, bodyName))
-
-	return isGeneric
+	return ambiguous
 }
 
-func handleOverrideStructFields(s *strings.Builder, data models.ReturnType) {
+// typeNamesOf maps every short name the annotation of body will contain — the body's
+// own type and each of its generic arguments — to the package that declares it.
+func typeNamesOf(body any) map[string]string {
+	names := map[string]string{}
+	if body == nil {
+		return names
+	}
+
+	_, t := unwrapType(reflect.TypeOf(body))
+	if t.PkgPath() == "" {
+		return names
+	}
+
+	ident, args := splitGenericArgs(t.Name())
+	names[pkgNameOf(t)+"."+ident] = t.PkgPath()
+
+	for _, match := range genericArgPkgRe.FindAllStringSubmatch(args, -1) {
+		names[path.Base(match[1])+"."+match[2]] = match[1]
+	}
+
+	return names
+}
+
+// annotationTypeName renders the type name swag reads from the annotation.
+func annotationTypeName(body any, ambiguous map[string]bool) string {
+	prefix, t := unwrapType(reflect.TypeOf(body))
+	if t.PkgPath() == "" {
+		return prefix + t.String()
+	}
+
+	ident, args := splitGenericArgs(t.Name())
+	name := prefix + qualifyTypeName(pkgNameOf(t), ident, t.PkgPath(), ambiguous)
+
+	if args == "" {
+		return name
+	}
+
+	// reflect writes generic arguments with the full package path; swag expects the
+	// same short form as the outer type.
+	return name + "[" + genericArgPkgRe.ReplaceAllStringFunc(args, func(arg string) string {
+		match := genericArgPkgRe.FindStringSubmatch(arg)
+		return qualifyTypeName(path.Base(match[1]), match[2], match[1], ambiguous)
+	})
+}
+
+// qualifyTypeName keeps the short name unless it is ambiguous, in which case it uses
+// the name swag gives to a definition it found in more than one package: the package
+// path with its separators replaced by underscores.
+func qualifyTypeName(pkgName, ident, pkgPath string, ambiguous map[string]bool) string {
+	shortName := pkgName + "." + ident
+	if !ambiguous[shortName] {
+		return shortName
+	}
+
+	return strings.NewReplacer("/", "_", ".", "_", `\`, "_").Replace(pkgPath) + "." + ident
+}
+
+// unwrapType strips the containers swag renders as a prefix, returning that prefix
+// and the named type underneath it.
+func unwrapType(t reflect.Type) (prefix string, elem reflect.Type) {
+	for {
+		switch t.Kind() {
+		case reflect.Pointer:
+			t = t.Elem()
+		case reflect.Slice:
+			prefix += "[]"
+			t = t.Elem()
+		default:
+			return prefix, t
+		}
+	}
+}
+
+// splitGenericArgs splits "Generic[pkg/path.Arg]" into "Generic" and "pkg/path.Arg]",
+// the trailing bracket included so the caller can write it back unchanged.
+func splitGenericArgs(typeName string) (ident, args string) {
+	ident, args, _ = strings.Cut(typeName, "[")
+	return ident, args
+}
+
+func pkgNameOf(t reflect.Type) string {
+	return strings.TrimSuffix(t.String(), "."+t.Name())
+}
+
+func handleOverrideStructFields(s *strings.Builder, data models.ReturnType, ambiguous map[string]bool) {
 	if data.OverrideStructFields != nil {
-		i := 0
-		for key, object := range data.OverrideStructFields {
+		for i, key := range sortedKeys(data.OverrideStructFields) {
 			if i == 0 {
 				s.WriteString("{")
 			}
 
-			s.WriteString(fmt.Sprintf("%s=%s", key, getStructAndPackageName(object)))
+			s.WriteString(fmt.Sprintf("%s=%s", key, annotationTypeName(data.OverrideStructFields[key], ambiguous)))
 			if i == len(data.OverrideStructFields)-1 {
 				s.WriteString("}")
 			} else {
 				s.WriteString(",")
 			}
-			i++
 		}
 	}
 }
 
-func getStructAndPackageName(body any) string {
-	isPointer := reflect.TypeOf(body).Kind() == reflect.Pointer
-	if isPointer {
-		body = reflect.ValueOf(body).Elem().Interface()
+// sortedKeys keeps the generated file stable across runs: map iteration order would
+// otherwise reshuffle it on every generation.
+func sortedKeys[V any](m map[string]V) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
 	}
+	sort.Strings(keys)
 
-	return reflect.TypeOf(body).String()
+	return keys
 }
 
 func addTextIfNotEmptyOrDefault(s *strings.Builder, defaultText, format string, text ...string) {
