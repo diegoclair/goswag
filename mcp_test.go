@@ -90,3 +90,72 @@ func TestMCPServer_PreInvokeRejects(t *testing.T) {
 		assert.Contains(t, strings.ToLower(string(raw)), "denied by policy")
 	}
 }
+
+func TestMCPBuilder_ToolRoundtrip(t *testing.T) {
+	ctx := context.Background()
+	var preCalled bool
+
+	srv := goswag.NewMCP("test-api", "0.0.1",
+		goswag.WithPreInvoke(func(_ context.Context, _ string, _ any) error {
+			preCalled = true
+			return nil
+		}),
+	).
+		Tool("greet", "Greet someone by name.", func(_ context.Context, in greetIn) (greetOut, error) {
+			return greetOut{Message: "hello, " + in.Name}, nil
+		}).
+		Tool("shout", "Shout someone's name.", func(_ context.Context, in greetIn) (greetOut, error) {
+			return greetOut{Message: strings.ToUpper(in.Name)}, nil
+		}).
+		Build()
+
+	cs := connect(t, ctx, srv)
+
+	res, err := cs.CallTool(ctx, &mcp.CallToolParams{Name: "greet", Arguments: map[string]any{"name": "world"}})
+	require.NoError(t, err)
+	assert.False(t, res.IsError)
+	raw, _ := json.Marshal(res)
+	assert.Contains(t, string(raw), "hello, world")
+
+	res, err = cs.CallTool(ctx, &mcp.CallToolParams{Name: "shout", Arguments: map[string]any{"name": "world"}})
+	require.NoError(t, err)
+	assert.False(t, res.IsError)
+	raw, _ = json.Marshal(res)
+	assert.Contains(t, string(raw), "WORLD")
+
+	assert.True(t, preCalled, "options passed to NewMCP must reach the registered tools")
+}
+
+// greetToolFactory mirrors how a consumer builds a tool that needs a dependency
+// injected, keeping the description next to the schema types.
+func greetToolFactory(prefix string) goswag.MCPTool {
+	return goswag.Tool("greet", "Greet someone by name.",
+		func(_ context.Context, in greetIn) (greetOut, error) {
+			return greetOut{Message: prefix + in.Name}, nil
+		})
+}
+
+func TestMCPBuilder_AddTools(t *testing.T) {
+	ctx := context.Background()
+
+	srv := goswag.NewMCP("test-api", "0.0.1").
+		AddTools(greetToolFactory("hello, ")).
+		Tool("shout", "Shout someone's name.", func(_ context.Context, in greetIn) (greetOut, error) {
+			return greetOut{Message: strings.ToUpper(in.Name)}, nil
+		}).
+		Build()
+
+	cs := connect(t, ctx, srv)
+
+	res, err := cs.CallTool(ctx, &mcp.CallToolParams{Name: "greet", Arguments: map[string]any{"name": "world"}})
+	require.NoError(t, err)
+	assert.False(t, res.IsError)
+	raw, _ := json.Marshal(res)
+	assert.Contains(t, string(raw), "hello, world")
+
+	res, err = cs.CallTool(ctx, &mcp.CallToolParams{Name: "shout", Arguments: map[string]any{"name": "world"}})
+	require.NoError(t, err)
+	assert.False(t, res.IsError)
+	raw, _ = json.Marshal(res)
+	assert.Contains(t, string(raw), "WORLD")
+}

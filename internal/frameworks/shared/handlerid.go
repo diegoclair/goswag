@@ -36,15 +36,13 @@ import (
 //	  → "raw"
 func UniqueIdentifier(fullName string) string {
 	fullName = strings.TrimSuffix(fullName, "-fm")
-	parts := strings.Split(fullName, ".")
-	funcName := parts[len(parts)-1]
 
 	// No qualifier (e.g. bare "foo") — nothing to disambiguate.
-	if len(parts) < 2 {
-		return funcName
+	qualifier, funcName, ok := strings.CutLast(fullName, ".")
+	if !ok {
+		return fullName
 	}
 
-	qualifier := fullName[:len(fullName)-len(funcName)-1]
 	h := sha1.Sum([]byte(qualifier))
 	return funcName + "_" + hex.EncodeToString(h[:4])
 }

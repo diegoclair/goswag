@@ -215,8 +215,8 @@ func detectPDL(input string) (int, string, error) {
 // the first path segment is a reliable discriminator.
 func isStdlibImport(path string) bool {
 	first := path
-	if idx := strings.IndexByte(path, '/'); idx >= 0 {
-		first = path[:idx]
+	if before, _, ok := strings.Cut(path, "/"); ok {
+		first = before
 	}
 	return !strings.Contains(first, ".")
 }
@@ -234,7 +234,7 @@ func readModulePath() (string, error) {
 	for dir := cwd; ; {
 		gomod := filepath.Join(dir, "go.mod")
 		if data, err := os.ReadFile(gomod); err == nil {
-			for _, line := range strings.Split(string(data), "\n") {
+			for line := range strings.SplitSeq(string(data), "\n") {
 				line = strings.TrimSpace(line)
 				if strings.HasPrefix(line, "module ") {
 					return strings.TrimSpace(strings.TrimPrefix(line, "module")), nil

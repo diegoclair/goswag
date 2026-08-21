@@ -57,9 +57,7 @@ func TestToGoSwagRoute(t *testing.T) {
 			name: "Should return the generator.Route",
 			args: args{from: []*ginRoute{
 				{
-					Route: generator.Route{
-						Method: "GET",
-					},
+					Method: "GET",
 				},
 			}},
 			want: []generator.Route{
@@ -72,14 +70,10 @@ func TestToGoSwagRoute(t *testing.T) {
 			name: "Should return the generator.Route for multiple routes",
 			args: args{from: []*ginRoute{
 				{
-					Route: generator.Route{
-						Method: "GET",
-					},
+					Method: "GET",
 				},
 				{
-					Route: generator.Route{
-						Method: "POST",
-					},
+					Method: "POST",
 				},
 			}},
 			want: []generator.Route{
@@ -117,9 +111,7 @@ func TestToGoSwagGroup(t *testing.T) {
 					groupName: "group1",
 					routes: []*ginRoute{
 						{
-							Route: generator.Route{
-								Method: "GET",
-							},
+							Method: "GET",
 						},
 					},
 				},
@@ -142,9 +134,7 @@ func TestToGoSwagGroup(t *testing.T) {
 					groupName: "group1",
 					routes: []*ginRoute{
 						{
-							Route: generator.Route{
-								Method: "GET",
-							},
+							Method: "GET",
 						},
 					},
 				},
@@ -152,9 +142,7 @@ func TestToGoSwagGroup(t *testing.T) {
 					groupName: "group3",
 					routes: []*ginRoute{
 						{
-							Route: generator.Route{
-								Method: "PUT",
-							},
+							Method: "PUT",
 						},
 					},
 				},

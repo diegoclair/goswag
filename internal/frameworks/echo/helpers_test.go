@@ -30,9 +30,7 @@ func Test_toGoSwagRoute(t *testing.T) {
 			name: "Should return the generator.Route",
 			args: args{from: []*echoRoute{
 				{
-					Route: generator.Route{
-						Method: "GET",
-					},
+					Method: "GET",
 				},
 			}},
 			want: []generator.Route{
@@ -45,14 +43,10 @@ func Test_toGoSwagRoute(t *testing.T) {
 			name: "Should return the generator.Route for multiple routes",
 			args: args{from: []*echoRoute{
 				{
-					Route: generator.Route{
-						Method: "GET",
-					},
+					Method: "GET",
 				},
 				{
-					Route: generator.Route{
-						Method: "POST",
-					},
+					Method: "POST",
 				},
 			}},
 			want: []generator.Route{
@@ -90,9 +84,7 @@ func Test_toGoSwagGroup(t *testing.T) {
 					groupName: "group",
 					routes: []*echoRoute{
 						{
-							Route: generator.Route{
-								Method: "GET",
-							},
+							Method: "GET",
 						},
 					},
 					groups: []*echoGroup{
@@ -100,9 +92,7 @@ func Test_toGoSwagGroup(t *testing.T) {
 							groupName: "subgroup",
 							routes: []*echoRoute{
 								{
-									Route: generator.Route{
-										Method: "POST",
-									},
+									Method: "POST",
 								},
 							},
 						},

@@ -30,8 +30,6 @@ func WithPostInvoke(f func(ctx context.Context, tool string, input, output any, 
 }
 
 // MCPTool is an opaque, typed tool registration produced by Tool[In, Out].
-// Go methods cannot have type parameters, so the In/Out types are captured in a
-// closure here rather than on a chainable .AsTool[In,Out](...) method.
 type MCPTool interface {
 	register(s *mcp.Server, cfg *MCPConfig)
 }
@@ -80,4 +78,37 @@ func NewMCPServer(name, version string, tools []MCPTool, opts ...MCPOption) *mcp
 		t.register(s, cfg)
 	}
 	return s
+}
+
+// MCPBuilder declares an MCP server fluently. Use Tool for a handler written
+// inline — it is a generic method, so In and Out are inferred per call — and
+// AddTools for tools built elsewhere, such as factories that inject services.
+type MCPBuilder struct {
+	name    string
+	version string
+	tools   []MCPTool
+	opts    []MCPOption
+}
+
+// NewMCP starts a fluent server definition; Build produces the *mcp.Server.
+func NewMCP(name, version string, opts ...MCPOption) *MCPBuilder {
+	return &MCPBuilder{name: name, version: version, opts: opts}
+}
+
+// Tool registers a typed handler — see the package-level Tool for how the input
+// and output schemas are derived.
+func (b *MCPBuilder) Tool[In, Out any](name, description string, handler func(ctx context.Context, in In) (Out, error)) *MCPBuilder {
+	b.tools = append(b.tools, &typedTool[In, Out]{name: name, description: description, handler: handler})
+	return b
+}
+
+// AddTools registers tools produced elsewhere, keeping each tool's description
+// next to the types that define its schema.
+func (b *MCPBuilder) AddTools(tools ...MCPTool) *MCPBuilder {
+	b.tools = append(b.tools, tools...)
+	return b
+}
+
+func (b *MCPBuilder) Build() *mcp.Server {
+	return NewMCPServer(b.name, b.version, b.tools, b.opts...)
 }

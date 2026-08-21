@@ -39,11 +39,9 @@ func (s *echoSwagger) POST(path string, h echo.HandlerFunc, m ...echo.Middleware
 	r := s.e.POST(path, h, m...)
 
 	er := &echoRoute{
-		Route: generator.Route{
-			Path:     r.Path,
-			Method:   r.Method,
-			FuncName: getFuncName(r.Name),
-		},
+		Path:     r.Path,
+		Method:   r.Method,
+		FuncName: getFuncName(r.Name),
 	}
 
 	s.routes = append(s.routes, er)
@@ -55,11 +53,9 @@ func (s *echoSwagger) GET(path string, h echo.HandlerFunc, m ...echo.MiddlewareF
 	r := s.e.GET(path, h, m...)
 
 	er := &echoRoute{
-		Route: generator.Route{
-			Path:     r.Path,
-			Method:   r.Method,
-			FuncName: getFuncName(r.Name),
-		},
+		Path:     r.Path,
+		Method:   r.Method,
+		FuncName: getFuncName(r.Name),
 	}
 
 	s.routes = append(s.routes, er)
@@ -71,11 +67,9 @@ func (s *echoSwagger) PUT(path string, h echo.HandlerFunc, m ...echo.MiddlewareF
 	r := s.e.PUT(path, h, m...)
 
 	er := &echoRoute{
-		Route: generator.Route{
-			Path:     r.Path,
-			Method:   r.Method,
-			FuncName: getFuncName(r.Name),
-		},
+		Path:     r.Path,
+		Method:   r.Method,
+		FuncName: getFuncName(r.Name),
 	}
 
 	s.routes = append(s.routes, er)
@@ -87,11 +81,9 @@ func (s *echoSwagger) DELETE(path string, h echo.HandlerFunc, m ...echo.Middlewa
 	r := s.e.DELETE(path, h, m...)
 
 	er := &echoRoute{
-		Route: generator.Route{
-			Path:     r.Path,
-			Method:   r.Method,
-			FuncName: getFuncName(r.Name),
-		},
+		Path:     r.Path,
+		Method:   r.Method,
+		FuncName: getFuncName(r.Name),
 	}
 
 	s.routes = append(s.routes, er)
@@ -103,11 +95,9 @@ func (s *echoSwagger) PATCH(path string, h echo.HandlerFunc, m ...echo.Middlewar
 	r := s.e.PATCH(path, h, m...)
 
 	er := &echoRoute{
-		Route: generator.Route{
-			Path:     r.Path,
-			Method:   r.Method,
-			FuncName: getFuncName(r.Name),
-		},
+		Path:     r.Path,
+		Method:   r.Method,
+		FuncName: getFuncName(r.Name),
 	}
 
 	s.routes = append(s.routes, er)
@@ -119,11 +109,9 @@ func (s *echoSwagger) OPTIONS(path string, h echo.HandlerFunc, m ...echo.Middlew
 	r := s.e.OPTIONS(path, h, m...)
 
 	er := &echoRoute{
-		Route: generator.Route{
-			Path:     r.Path,
-			Method:   r.Method,
-			FuncName: getFuncName(r.Name),
-		},
+		Path:     r.Path,
+		Method:   r.Method,
+		FuncName: getFuncName(r.Name),
 	}
 
 	s.routes = append(s.routes, er)
@@ -135,11 +123,9 @@ func (s *echoSwagger) HEAD(path string, h echo.HandlerFunc, m ...echo.Middleware
 	r := s.e.HEAD(path, h, m...)
 
 	er := &echoRoute{
-		Route: generator.Route{
-			Path:     r.Path,
-			Method:   r.Method,
-			FuncName: getFuncName(r.Name),
-		},
+		Path:     r.Path,
+		Method:   r.Method,
+		FuncName: getFuncName(r.Name),
 	}
 
 	s.routes = append(s.routes, er)
@@ -166,11 +152,9 @@ func (s *echoGroup) POST(path string, h echo.HandlerFunc, m ...echo.MiddlewareFu
 	r := s.g.POST(path, h, m...)
 
 	er := &echoRoute{
-		Route: generator.Route{
-			Path:     r.Path,
-			Method:   r.Method,
-			FuncName: getFuncName(r.Name),
-		},
+		Path:     r.Path,
+		Method:   r.Method,
+		FuncName: getFuncName(r.Name),
 	}
 
 	s.routes = append(s.routes, er)
@@ -182,11 +166,9 @@ func (s *echoGroup) GET(path string, h echo.HandlerFunc, m ...echo.MiddlewareFun
 	r := s.g.GET(path, h, m...)
 
 	er := &echoRoute{
-		Route: generator.Route{
-			Path:     r.Path,
-			Method:   r.Method,
-			FuncName: getFuncName(r.Name),
-		},
+		Path:     r.Path,
+		Method:   r.Method,
+		FuncName: getFuncName(r.Name),
 	}
 
 	s.routes = append(s.routes, er)
@@ -198,11 +180,9 @@ func (s *echoGroup) PUT(path string, h echo.HandlerFunc, m ...echo.MiddlewareFun
 	r := s.g.PUT(path, h, m...)
 
 	er := &echoRoute{
-		Route: generator.Route{
-			Path:     r.Path,
-			Method:   r.Method,
-			FuncName: getFuncName(r.Name),
-		},
+		Path:     r.Path,
+		Method:   r.Method,
+		FuncName: getFuncName(r.Name),
 	}
 
 	s.routes = append(s.routes, er)
@@ -214,11 +194,9 @@ func (s *echoGroup) DELETE(path string, h echo.HandlerFunc, m ...echo.Middleware
 	r := s.g.DELETE(path, h, m...)
 
 	er := &echoRoute{
-		Route: generator.Route{
-			Path:     r.Path,
-			Method:   r.Method,
-			FuncName: getFuncName(r.Name),
-		},
+		Path:     r.Path,
+		Method:   r.Method,
+		FuncName: getFuncName(r.Name),
 	}
 
 	s.routes = append(s.routes, er)
@@ -230,11 +208,9 @@ func (s *echoGroup) PATCH(path string, h echo.HandlerFunc, m ...echo.MiddlewareF
 	r := s.g.PATCH(path, h, m...)
 
 	er := &echoRoute{
-		Route: generator.Route{
-			Path:     r.Path,
-			Method:   r.Method,
-			FuncName: getFuncName(r.Name),
-		},
+		Path:     r.Path,
+		Method:   r.Method,
+		FuncName: getFuncName(r.Name),
 	}
 
 	s.routes = append(s.routes, er)
@@ -246,11 +222,9 @@ func (s *echoGroup) OPTIONS(path string, h echo.HandlerFunc, m ...echo.Middlewar
 	r := s.g.OPTIONS(path, h, m...)
 
 	er := &echoRoute{
-		Route: generator.Route{
-			Path:     r.Path,
-			Method:   r.Method,
-			FuncName: getFuncName(r.Name),
-		},
+		Path:     r.Path,
+		Method:   r.Method,
+		FuncName: getFuncName(r.Name),
 	}
 
 	s.routes = append(s.routes, er)
@@ -262,11 +236,9 @@ func (s *echoGroup) HEAD(path string, h echo.HandlerFunc, m ...echo.MiddlewareFu
 	r := s.g.HEAD(path, h, m...)
 
 	er := &echoRoute{
-		Route: generator.Route{
-			Path:     r.Path,
-			Method:   r.Method,
-			FuncName: getFuncName(r.Name),
-		},
+		Path:     r.Path,
+		Method:   r.Method,
+		FuncName: getFuncName(r.Name),
 	}
 
 	s.routes = append(s.routes, er)
