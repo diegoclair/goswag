@@ -14,7 +14,7 @@ func TestUniqueIdentifier(t *testing.T) {
 	}{
 		{
 			name:       "Receiver method on a package — short name plus stable hash suffix",
-			input:      "github.com/diegoclair/goswag/internal/frameworks/echo.(*Echo).GET-fm",
+			input:      "github.com/diegoclair/goswag/v2/internal/frameworks/echo.(*Echo).GET-fm",
 			wantPrefix: "GET_",
 			wantSuffix: true,
 		},

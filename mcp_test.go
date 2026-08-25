@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/diegoclair/goswag"
+	"github.com/diegoclair/goswag/v2"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

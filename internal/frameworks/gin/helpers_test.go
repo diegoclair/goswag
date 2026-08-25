@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/diegoclair/goswag/internal/generator"
+	"github.com/diegoclair/goswag/v2/internal/generator"
 	"github.com/gin-gonic/gin"
 )
 

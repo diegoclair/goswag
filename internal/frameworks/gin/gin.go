@@ -3,8 +3,8 @@ package gin
 import (
 	"net/http"
 
-	"github.com/diegoclair/goswag/internal/generator"
-	"github.com/diegoclair/goswag/models"
+	"github.com/diegoclair/goswag/v2/internal/generator"
+	"github.com/diegoclair/goswag/v2/models"
 	"github.com/gin-gonic/gin"
 )
 

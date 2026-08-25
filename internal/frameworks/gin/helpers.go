@@ -6,15 +6,13 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/diegoclair/goswag/internal/frameworks/shared"
-	"github.com/diegoclair/goswag/internal/generator"
+	"github.com/diegoclair/goswag/v2/internal/frameworks/shared"
+	"github.com/diegoclair/goswag/v2/internal/generator"
 	"github.com/gin-gonic/gin"
 )
 
-// getFuncName resolves the last handler in the chain to a unique Go
-// identifier. The last handler is the one that defines the route (earlier
-// entries are middlewares). See shared.UniqueIdentifier for the rationale
-// behind the disambiguation suffix.
+// getFuncName resolves the route handler to a unique Go identifier; the last
+// entry in the chain is the handler, the earlier ones are middlewares.
 func getFuncName(handlers ...gin.HandlerFunc) string {
 	lastHandler := handlers[len(handlers)-1]
 	fullFuncName := runtime.FuncForPC(reflect.ValueOf(lastHandler).Pointer()).Name()
@@ -22,8 +20,6 @@ func getFuncName(handlers ...gin.HandlerFunc) string {
 }
 
 // toGoSwagRoute converts a slice of ginRoute to a slice of generator.Route.
-// It iterates over each ginRoute in the input slice and appends its Route field to the output slice.
-// Returns the converted slice of generator.Route.
 func toGoSwagRoute(from []*ginRoute) []generator.Route {
 	var routes []generator.Route
 	for _, r := range from {
@@ -33,9 +29,7 @@ func toGoSwagRoute(from []*ginRoute) []generator.Route {
 	return routes
 }
 
-// toGoSwagGroup converts a slice of ginGroup objects to a slice of generator.Group.
-// It iterates over each ginGroup and creates a generator.Group object with the corresponding properties.
-// The converted generator.Group objects are then returned as a slice.
+// toGoSwagGroup converts a slice of ginGroup to a slice of generator.Group.
 func toGoSwagGroup(from []*ginGroup) []generator.Group {
 	var groups []generator.Group
 	for _, g := range from {

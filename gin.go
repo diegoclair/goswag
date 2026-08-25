@@ -1,8 +1,8 @@
 package goswag
 
 import (
-	ginWrapper "github.com/diegoclair/goswag/internal/frameworks/gin"
-	"github.com/diegoclair/goswag/models"
+	ginWrapper "github.com/diegoclair/goswag/v2/internal/frameworks/gin"
+	"github.com/diegoclair/goswag/v2/models"
 	"github.com/gin-gonic/gin"
 )
 

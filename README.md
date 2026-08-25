@@ -43,8 +43,64 @@ For instance, if your framework uses a POST method with specific parameters, Gos
 <img src="./assets/swagger-result.png" alt="swagger result" width="500"/>
 
 ### - Supported Libraries
-- [echo](https://github.com/labstack/echo) 
-- [gin](https://github.com/gin-gonic/gin)
+- [echo](https://github.com/labstack/echo) — **v5** (`github.com/labstack/echo/v5`)
+- [gin](https://github.com/gin-gonic/gin) — **v1.12.0** (`github.com/gin-gonic/gin`)
+
+## v2 / migrating from v1
+
+`v2` targets **Echo v5** and **Gin v1.12.0**. The Gin API is unchanged.
+
+```sh
+go get github.com/diegoclair/goswag/v2
+```
+
+```go
+import (
+    "github.com/diegoclair/goswag/v2"
+    "github.com/diegoclair/goswag/v2/models"
+)
+```
+
+`v1` keeps working for projects on Echo v4 — it stays available through its existing tags.
+
+### What changes for you
+
+The goswag API is the same: `goswag.NewEcho(...)`, `.Echo()`, `Group`, and the fluent
+`Summary/Description/Tags/Accepts/Produces/Read/Returns/QueryParam/HeaderParam/PathParam`
+builders all keep their names, order and meaning. What changes are the Echo types they carry:
+
+| | v1 | v2 |
+|---|---|---|
+| module | `github.com/diegoclair/goswag` | `github.com/diegoclair/goswag/v2` |
+| echo | `github.com/labstack/echo/v4` | `github.com/labstack/echo/v5` |
+| handler | `func(c echo.Context) error` | `func(c *echo.Context) error` |
+| `goswag.Echo.Echo()` | `*echo.Echo` (v4) | `*echo.Echo` (v5) |
+
+So the migration in your own code is Echo's migration, not goswag's:
+
+```sh
+gofmt -w -r '"github.com/labstack/echo/v4" -> "github.com/labstack/echo/v5"' .
+gofmt -w -r 'echo.Context -> *echo.Context' .
+gofmt -w -r '"github.com/diegoclair/goswag" -> "github.com/diegoclair/goswag/v2"' .
+gofmt -w -r '"github.com/diegoclair/goswag/models" -> "github.com/diegoclair/goswag/v2/models"' .
+go mod tidy
+```
+
+`gofmt -r` matches the Go syntax tree rather than raw text, so comments are never
+touched, the type rule catches every form — `func(echo.Context) error` with no
+leading space included — and the import rules only match a whole path, never a
+prefix of a longer one. If you import Echo under an alias, use that alias in the
+second rule. Run it on a clean tree: `gofmt -w` reformats every file it rewrites.
+
+See Echo's [API_CHANGES_V5.md](https://github.com/labstack/echo/blob/master/API_CHANGES_V5.md)
+for the rest of the framework's breaking changes (logger, `HTTPError`, error handler, server startup).
+
+### Generated documentation is unchanged
+
+Echo v5 no longer names a route after its handler — `RouteInfo.Name` now defaults to
+`method:path`. goswag reads the handler name directly (`echo.HandlerName`) at registration
+time instead, so the same handlers produce byte-identical `goswag.go` stubs and the same
+OpenAPI output as `v1`. Nothing to re-review after upgrading.
 
 ## Getting started
 
@@ -112,7 +168,7 @@ func main() {
 #### Generating the docs
 Install the `goswag` CLI once:
 ```sh
-go install github.com/diegoclair/goswag/cmd/goswag@latest
+go install github.com/diegoclair/goswag/v2/cmd/goswag@latest
 ```
 Then, from your project root, run:
 ```sh
@@ -151,8 +207,8 @@ The command produces a `goswag.go` file inside your `goswag` directory containin
 **NOTE**: after the first generation, the `doc.go` file in the `docs` folder will import the Swag library. If you haven't used Swag in your project before, run `go mod tidy` to ensure the swag package is included in your `go.mod`.
 
 #### Updating
-- **CLI:** `go install github.com/diegoclair/goswag/cmd/goswag@latest`
-- **Library:** `go get -u github.com/diegoclair/goswag && go mod tidy`
+- **CLI:** `go install github.com/diegoclair/goswag/v2/cmd/goswag@latest`
+- **Library:** `go get -u github.com/diegoclair/goswag/v2 && go mod tidy`
 
 ## Default Response for all routes
 You can add a default responses to all routes when you instantiate the swagger.  

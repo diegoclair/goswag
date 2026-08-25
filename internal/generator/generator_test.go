@@ -5,16 +5,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/diegoclair/goswag/internal/generator/testutil"
-	viewmodelA "github.com/diegoclair/goswag/internal/generator/testutil/apia/viewmodel"
-	viewmodelB "github.com/diegoclair/goswag/internal/generator/testutil/apib/viewmodel"
-	"github.com/diegoclair/goswag/models"
+	"github.com/diegoclair/goswag/v2/internal/generator/testutil"
+	viewmodelA "github.com/diegoclair/goswag/v2/internal/generator/testutil/apia/viewmodel"
+	viewmodelB "github.com/diegoclair/goswag/v2/internal/generator/testutil/apib/viewmodel"
+	"github.com/diegoclair/goswag/v2/models"
 	"github.com/stretchr/testify/assert"
 )
 
 const (
-	mangledPkgA = "github_com_diegoclair_goswag_internal_generator_testutil_apia_viewmodel"
-	mangledPkgB = "github_com_diegoclair_goswag_internal_generator_testutil_apib_viewmodel"
+	mangledPkgA = "github_com_diegoclair_goswag_v2_internal_generator_testutil_apia_viewmodel"
+	mangledPkgB = "github_com_diegoclair_goswag_v2_internal_generator_testutil_apib_viewmodel"
 )
 
 func TestAnnotationTypeName(t *testing.T) {
@@ -577,7 +577,7 @@ func TestWriteReturns(t *testing.T) {
 				},
 			},
 			expectedStringBuilder: "// @Success 200 {object} models.ReturnType\n",
-			expectedPackages:      map[string]bool{"github.com/diegoclair/goswag/models": true},
+			expectedPackages:      map[string]bool{"github.com/diegoclair/goswag/v2/models": true},
 		},
 		{
 			name: "Should do nothing if we do not have status code",
@@ -598,7 +598,7 @@ func TestWriteReturns(t *testing.T) {
 				},
 			},
 			expectedStringBuilder: "// @Failure 400 {object} models.ReturnType\n",
-			expectedPackages:      map[string]bool{"github.com/diegoclair/goswag/models": true},
+			expectedPackages:      map[string]bool{"github.com/diegoclair/goswag/v2/models": true},
 		},
 		{
 			name: "Should add only status code if we do not have body",
@@ -815,7 +815,7 @@ func Test_addPackageToImport(t *testing.T) {
 			},
 			initialPkgs: make(map[string]bool),
 			expectedPkgs: map[string]bool{
-				"github.com/diegoclair/goswag/models": true,
+				"github.com/diegoclair/goswag/v2/models": true,
 			},
 		},
 		{
@@ -825,7 +825,7 @@ func Test_addPackageToImport(t *testing.T) {
 			},
 			initialPkgs: make(map[string]bool),
 			expectedPkgs: map[string]bool{
-				"github.com/diegoclair/goswag/internal/generator/testutil": true,
+				"github.com/diegoclair/goswag/v2/internal/generator/testutil": true,
 			},
 		},
 		{
@@ -850,10 +850,10 @@ func Test_addPackageToImport(t *testing.T) {
 				Body: models.ReturnType{},
 			},
 			initialPkgs: map[string]bool{
-				"github.com/diegoclair/goswag/models": true,
+				"github.com/diegoclair/goswag/v2/models": true,
 			},
 			expectedPkgs: map[string]bool{
-				"github.com/diegoclair/goswag/models": true,
+				"github.com/diegoclair/goswag/v2/models": true,
 			},
 		},
 		{
@@ -863,7 +863,7 @@ func Test_addPackageToImport(t *testing.T) {
 			},
 			initialPkgs: make(map[string]bool),
 			expectedPkgs: map[string]bool{
-				"github.com/diegoclair/goswag/models": true,
+				"github.com/diegoclair/goswag/v2/models": true,
 			},
 		},
 		{
@@ -873,7 +873,7 @@ func Test_addPackageToImport(t *testing.T) {
 			},
 			initialPkgs: make(map[string]bool),
 			expectedPkgs: map[string]bool{
-				"github.com/diegoclair/goswag/internal/generator/testutil": true,
+				"github.com/diegoclair/goswag/v2/internal/generator/testutil": true,
 			},
 		},
 		{
@@ -883,8 +883,8 @@ func Test_addPackageToImport(t *testing.T) {
 			},
 			initialPkgs: make(map[string]bool),
 			expectedPkgs: map[string]bool{
-				"github.com/diegoclair/goswag/internal/generator/testutil": true,
-				"github.com/diegoclair/goswag/models":                      true,
+				"github.com/diegoclair/goswag/v2/internal/generator/testutil": true,
+				"github.com/diegoclair/goswag/v2/models":                      true,
 			},
 		},
 		{
@@ -894,8 +894,8 @@ func Test_addPackageToImport(t *testing.T) {
 			},
 			initialPkgs: make(map[string]bool),
 			expectedPkgs: map[string]bool{
-				"github.com/diegoclair/goswag/internal/generator/testutil": true,
-				"github.com/diegoclair/goswag/models":                      true,
+				"github.com/diegoclair/goswag/v2/internal/generator/testutil": true,
+				"github.com/diegoclair/goswag/v2/models":                      true,
 			},
 		},
 		{
@@ -905,7 +905,7 @@ func Test_addPackageToImport(t *testing.T) {
 			},
 			initialPkgs: make(map[string]bool),
 			expectedPkgs: map[string]bool{
-				"github.com/diegoclair/goswag/models": true,
+				"github.com/diegoclair/goswag/v2/models": true,
 			},
 		},
 		{
@@ -915,8 +915,8 @@ func Test_addPackageToImport(t *testing.T) {
 			},
 			initialPkgs: make(map[string]bool),
 			expectedPkgs: map[string]bool{
-				"github.com/diegoclair/goswag/internal/generator/testutil": true,
-				"github.com/diegoclair/goswag/models":                      true,
+				"github.com/diegoclair/goswag/v2/internal/generator/testutil": true,
+				"github.com/diegoclair/goswag/v2/models":                      true,
 			},
 		},
 		{
@@ -926,8 +926,8 @@ func Test_addPackageToImport(t *testing.T) {
 			},
 			initialPkgs: make(map[string]bool),
 			expectedPkgs: map[string]bool{
-				"github.com/diegoclair/goswag/internal/generator/testutil": true,
-				"github.com/diegoclair/goswag/models":                      true,
+				"github.com/diegoclair/goswag/v2/internal/generator/testutil": true,
+				"github.com/diegoclair/goswag/v2/models":                      true,
 			},
 		},
 	}

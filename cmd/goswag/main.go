@@ -299,6 +299,6 @@ Commands:
 Run "goswag docs --help" for command-specific flags.
 
 Updating:
-  CLI:  go install github.com/diegoclair/goswag/cmd/goswag@latest
-  Lib:  go get -u github.com/diegoclair/goswag && go mod tidy`)
+  CLI:  go install github.com/diegoclair/goswag/v2/cmd/goswag@latest
+  Lib:  go get -u github.com/diegoclair/goswag/v2 && go mod tidy`)
 }

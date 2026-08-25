@@ -4,17 +4,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/diegoclair/goswag/internal/generator"
-	"github.com/diegoclair/goswag/models"
-	"github.com/labstack/echo/v4"
+	"github.com/diegoclair/goswag/v2/internal/generator"
+	"github.com/diegoclair/goswag/v2/models"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// normalizeFuncName collapses the auto-generated hash suffix back to the
-// short name so tests can assert against a stable literal. getFuncName
-// always appends "_<hash>" to disambiguate identically-named handlers
-// across packages; we still validate the prefix matches what the test
-// expects.
+// normalizeFuncName drops the "_<hash>" disambiguation suffix getFuncName adds,
+// after checking the short name matches, so tables can assert a stable literal.
 func normalizeFuncName(t *testing.T, want generator.Route, got generator.Route) generator.Route {
 	t.Helper()
 	if want.FuncName == "" {
@@ -98,7 +96,7 @@ func TestEchoSwagger_GET(t *testing.T) {
 			name: "Test GET",
 			args: args{
 				path: "/test/:id/",
-				h:    func(c echo.Context) error { return nil },
+				h:    func(c *echo.Context) error { return nil },
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
@@ -136,7 +134,7 @@ func TestEchoSwagger_POST(t *testing.T) {
 			name: "Test POST",
 			args: args{
 				path: "/test/:id/",
-				h:    func(c echo.Context) error { return nil },
+				h:    func(c *echo.Context) error { return nil },
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
@@ -174,7 +172,7 @@ func TestEchoSwagger_PUT(t *testing.T) {
 			name: "Test PUT",
 			args: args{
 				path: "/test/:id/",
-				h:    func(c echo.Context) error { return nil },
+				h:    func(c *echo.Context) error { return nil },
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
@@ -212,7 +210,7 @@ func TestEchoSwagger_DELETE(t *testing.T) {
 			name: "Test DELETE",
 			args: args{
 				path: "/test/:id/",
-				h:    func(c echo.Context) error { return nil },
+				h:    func(c *echo.Context) error { return nil },
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
@@ -250,7 +248,7 @@ func TestEchoSwagger_PATCH(t *testing.T) {
 			name: "Test PATCH",
 			args: args{
 				path: "/test/:id/",
-				h:    func(c echo.Context) error { return nil },
+				h:    func(c *echo.Context) error { return nil },
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
@@ -288,7 +286,7 @@ func TestEchoSwagger_OPTIONS(t *testing.T) {
 			name: "Test OPTIONS",
 			args: args{
 				path: "/test/:id/",
-				h:    func(c echo.Context) error { return nil },
+				h:    func(c *echo.Context) error { return nil },
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
@@ -326,7 +324,7 @@ func TestEchoSwagger_HEAD(t *testing.T) {
 			name: "Test HEAD",
 			args: args{
 				path: "/test/:id/",
-				h:    func(c echo.Context) error { return nil },
+				h:    func(c *echo.Context) error { return nil },
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
@@ -398,7 +396,7 @@ func TestEchoGroup_GET(t *testing.T) {
 			name: "Test GET",
 			args: args{
 				path: "/test/:id/",
-				h:    func(c echo.Context) error { return nil },
+				h:    func(c *echo.Context) error { return nil },
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
@@ -436,7 +434,7 @@ func TestEchoGroup_POST(t *testing.T) {
 			name: "Test POST",
 			args: args{
 				path: "/test/:id/",
-				h:    func(c echo.Context) error { return nil },
+				h:    func(c *echo.Context) error { return nil },
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
@@ -474,7 +472,7 @@ func TestEchoGroup_PUT(t *testing.T) {
 			name: "Test PUT",
 			args: args{
 				path: "/test/:id/",
-				h:    func(c echo.Context) error { return nil },
+				h:    func(c *echo.Context) error { return nil },
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
@@ -512,7 +510,7 @@ func TestEchoGroup_DELETE(t *testing.T) {
 			name: "Test DELETE",
 			args: args{
 				path: "/test/:id/",
-				h:    func(c echo.Context) error { return nil },
+				h:    func(c *echo.Context) error { return nil },
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
@@ -550,7 +548,7 @@ func TestEchoGroup_PATCH(t *testing.T) {
 			name: "Test PATCH",
 			args: args{
 				path: "/test/:id/",
-				h:    func(c echo.Context) error { return nil },
+				h:    func(c *echo.Context) error { return nil },
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
@@ -588,7 +586,7 @@ func TestEchoGroup_OPTIONS(t *testing.T) {
 			name: "Test OPTIONS",
 			args: args{
 				path: "/test/:id/",
-				h:    func(c echo.Context) error { return nil },
+				h:    func(c *echo.Context) error { return nil },
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
@@ -626,7 +624,7 @@ func TestEchoGroup_HEAD(t *testing.T) {
 			name: "Test HEAD",
 			args: args{
 				path: "/test/:id/",
-				h:    func(c echo.Context) error { return nil },
+				h:    func(c *echo.Context) error { return nil },
 				m:    []echo.MiddlewareFunc{},
 			},
 			want: generator.Route{
@@ -1016,4 +1014,57 @@ func TestEchoRoute_PathParam(t *testing.T) {
 			assert.Equal(t, tt.want.PathParams, r.Route.PathParams)
 		})
 	}
+}
+
+func namedHandler(c *echo.Context) error { return nil }
+
+func TestFuncNameComesFromHandlerNotRouteName(t *testing.T) {
+	swaggerVerbs := []struct {
+		name     string
+		register func(*echoSwagger, string, echo.HandlerFunc, ...echo.MiddlewareFunc) models.Swagger
+	}{
+		{"GET", (*echoSwagger).GET},
+		{"POST", (*echoSwagger).POST},
+		{"PUT", (*echoSwagger).PUT},
+		{"DELETE", (*echoSwagger).DELETE},
+		{"PATCH", (*echoSwagger).PATCH},
+		{"OPTIONS", (*echoSwagger).OPTIONS},
+		{"HEAD", (*echoSwagger).HEAD},
+	}
+	for _, tt := range swaggerVerbs {
+		t.Run("echoSwagger."+tt.name, func(t *testing.T) {
+			s := &echoSwagger{e: echo.New()}
+			tt.register(s, "/test/:id", namedHandler)
+
+			assertHandlerFuncName(t, s.routes)
+		})
+	}
+
+	groupVerbs := []struct {
+		name     string
+		register func(*echoGroup, string, echo.HandlerFunc, ...echo.MiddlewareFunc) models.Swagger
+	}{
+		{"GET", (*echoGroup).GET},
+		{"POST", (*echoGroup).POST},
+		{"PUT", (*echoGroup).PUT},
+		{"DELETE", (*echoGroup).DELETE},
+		{"PATCH", (*echoGroup).PATCH},
+		{"OPTIONS", (*echoGroup).OPTIONS},
+		{"HEAD", (*echoGroup).HEAD},
+	}
+	for _, tt := range groupVerbs {
+		t.Run("echoGroup."+tt.name, func(t *testing.T) {
+			g := &echoGroup{g: echo.New().Group("/api")}
+			tt.register(g, "/test", namedHandler)
+
+			assertHandlerFuncName(t, g.routes)
+		})
+	}
+}
+
+func assertHandlerFuncName(t *testing.T, routes []*echoRoute) {
+	t.Helper()
+	require.Len(t, routes, 1)
+	assert.True(t, strings.HasPrefix(routes[0].Route.FuncName, "namedHandler_"),
+		"FuncName = %q, want handler-derived name", routes[0].Route.FuncName)
 }

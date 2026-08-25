@@ -1,8 +1,10 @@
 # MCP Generation — Design Proposal
 
-> **Status:** Draft — design direction revised 2026-06-02 (see §0). To be validated during the Phase 1 spike.
-> **Target release:** v2.0.0.
-> **Last updated:** 2026-06-02.
+> **Status:** Implemented — design direction revised 2026-06-02 (see §0); kept as the record of why the surface looks like it does.
+> **Shipped in:** v1.2.0 (runtime MCP server builder) and v1.3.0 (fluent builder) —
+> not in v2.0.0, which is the unrelated module-path + Echo v5 break. References to
+> "v2.x" below predate that and mean "a later release".
+> **Last updated:** 2026-08-25.
 
 This document proposes adding Model Context Protocol (MCP) server generation
 to **goswag**. The goal is letting the *same* route declarations that already
@@ -99,7 +101,7 @@ today.
 
 ### 2.2 Explicit handlers (no automatic context fakes)
 Each MCP-eligible route requires the user to pass a **pure function** —
-no `echo.Context` / `*gin.Context`. This:
+no `*echo.Context` / `*gin.Context`. This:
 
 - Decouples the MCP handler from the HTTP framework
 - Makes auth and validation responsibilities explicit
@@ -384,7 +386,7 @@ Saying "no" up front avoids scope creep later.
 - **No prompt templates / resource URIs (yet).** v2 focuses on tools.
   Resources and prompts can come in v2.x.
 - **No automatic handler reuse.** As argued in §2.2, the user provides a
-  pure function. We do *not* synthesize an `echo.Context` to call the
+  pure function. We do *not* synthesize an `*echo.Context` to call the
   HTTP handler.
 - **No partial / streaming tool responses (yet).** MCP supports this;
   the first cut returns full responses. Streaming is a v2.x addition.
@@ -452,10 +454,10 @@ Goal: prove end-to-end on a single route. Throwaway code allowed.
 - Streaming (if/when demand appears).
 - Resources & prompts primitives.
 
-### Phase 5 — v2.0.0 release
-After Phase 3 is battle-tested in at least one real project, cut a
-release. The library version bumps because v2 is a meaningful surface
-addition (not a breaking change to existing Swagger generation).
+### Phase 5 — release
+Shipped as a minor bump, not a major one: the runtime builder landed in
+v1.2.0 and the fluent `NewMCP(...)` surface in v1.3.0. MCP is purely
+additive, so it never required a major version of its own.
 
 ---
 
@@ -463,8 +465,9 @@ addition (not a breaking change to existing Swagger generation).
 
 Every change proposed here is additive. Projects already using goswag
 for Swagger generation see no behavioural change unless they call
-`.AsTool()` or run `goswag mcp generate`. v1.x code continues to work
-under v2.x without modification.
+`.AsTool()` or run `goswag mcp generate` — which is why MCP shipped
+inside v1.x. The v2.0.0 break is unrelated to MCP: it is the module path
+and Echo v5 migration, described in the README.
 
 The only "soft" surface change is the new struct tags
 (`goswag:"mcp:hidden"`). They are ignored by Swagger generation, so

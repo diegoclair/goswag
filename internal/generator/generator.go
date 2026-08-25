@@ -12,7 +12,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/diegoclair/goswag/models"
+	"github.com/diegoclair/goswag/v2/models"
 )
 
 const fileName = "goswag.go"

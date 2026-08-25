@@ -1,10 +1,10 @@
 package goswag
 
 import (
-	echoWrapper "github.com/diegoclair/goswag/internal/frameworks/echo"
-	"github.com/diegoclair/goswag/models"
+	echoWrapper "github.com/diegoclair/goswag/v2/internal/frameworks/echo"
+	"github.com/diegoclair/goswag/v2/models"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 type Echo interface {

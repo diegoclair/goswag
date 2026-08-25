@@ -4,14 +4,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/diegoclair/goswag/internal/generator"
+	"github.com/diegoclair/goswag/v2/internal/generator"
 )
 
 // Test_getFuncName is a smoke test: the heavy lifting (collision handling,
 // determinism, edge cases) is verified in internal/frameworks/shared. Here
 // we just confirm the echo wrapper actually delegates to it.
 func Test_getFuncName(t *testing.T) {
-	got := getFuncName("github.com/diegoclair/goswag/internal/frameworks/echo.(*Echo).GET-fm")
+	got := getFuncName("github.com/diegoclair/goswag/v2/internal/frameworks/echo.(*Echo).GET-fm")
 	if !strings.HasPrefix(got, "GET_") || len(got) != len("GET_")+8 {
 		t.Fatalf("getFuncName did not produce expected disambiguated identifier: %q", got)
 	}

@@ -1,20 +1,27 @@
 package echo
 
 import (
-	"github.com/diegoclair/goswag/internal/frameworks/shared"
-	"github.com/diegoclair/goswag/internal/generator"
+	"github.com/diegoclair/goswag/v2/internal/frameworks/shared"
+	"github.com/diegoclair/goswag/v2/internal/generator"
+	"github.com/labstack/echo/v5"
 )
 
-// getFuncName returns a unique Go identifier for the handler whose fully
-// qualified name is the input string. See shared.UniqueIdentifier for the
-// rationale (collision avoidance across packages with same short name).
+// echo v5 defaults RouteInfo.Name to "method:path", so the generated stub name
+// must come from the handler itself.
+func newRoute(ri echo.RouteInfo, h echo.HandlerFunc) *echoRoute {
+	return &echoRoute{
+		Path:     ri.Path,
+		Method:   ri.Method,
+		FuncName: getFuncName(echo.HandlerName(h)),
+	}
+}
+
+// getFuncName turns a fully qualified handler name into a unique Go identifier.
 func getFuncName(name string) string {
 	return shared.UniqueIdentifier(name)
 }
 
 // toGoSwagRoute converts a slice of echoRoute to a slice of generator.Route.
-// It iterates over each echoRoute in the input slice and appends its Route field to the output slice.
-// Returns the converted slice of generator.Route.
 func toGoSwagRoute(from []*echoRoute) []generator.Route {
 	var routes []generator.Route
 	for _, r := range from {
@@ -24,9 +31,8 @@ func toGoSwagRoute(from []*echoRoute) []generator.Route {
 	return routes
 }
 
-// toGoSwagGroup converts a slice of echoGroup objects to a slice of generator.Group.
-// It iterates over each echoGroup and creates a generator.Group object with the corresponding properties.
-// The converted generator.Group objects are then returned as a slice.
+// toGoSwagGroup converts a slice of echoGroup to a slice of generator.Group,
+// preserving the nesting.
 func toGoSwagGroup(from []*echoGroup) []generator.Group {
 	var groups []generator.Group
 	for _, g := range from {
