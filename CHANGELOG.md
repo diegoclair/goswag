@@ -6,6 +6,14 @@ releases see the git history.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.0.1] - 2026-08-25
+
+### Fixed
+
+- Generated `goswag.go` is stable under `gofmt`: the `//nolint:unused` stub line
+  no longer carries a trailing space, and the `goswag` CLI runs `gofmt` after
+  `swag fmt`, so saving the file in an editor no longer produces a diff.
+
 ## [v2.0.0] - 2026-08-25
 
 ### Changed
@@ -65,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   hash of the package qualifier, so handlers sharing a short name across
   packages no longer collide in the generated `goswag.go`.
 
+[v2.0.1]: https://github.com/diegoclair/goswag/releases/tag/v2.0.1
 [v2.0.0]: https://github.com/diegoclair/goswag/releases/tag/v2.0.0
 [v1.3.0]: https://github.com/diegoclair/goswag/releases/tag/v1.3.0
 [v1.2.2]: https://github.com/diegoclair/goswag/releases/tag/v1.2.2

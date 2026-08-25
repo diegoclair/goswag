@@ -5,7 +5,7 @@
 //     calls goswag.GenerateSwagger() internally)
 //  2. `swag init ...`              — generates the OpenAPI JSON/YAML from
 //     the annotated stub
-//  3. `swag fmt -d <input>/`       — formats the annotations in place
+//  3. `swag fmt -d <input>/` + gofmt — formats the annotations in place
 //
 // If `swag` is not on PATH, the CLI installs it automatically (it's a hard
 // dependency anyway). All paths default to the convention documented in
@@ -76,14 +76,14 @@ func runDocs(args []string) error {
 	fs.StringVar(&cfg.output, "o", "./docs", "shorthand for --output")
 	fs.IntVar(&cfg.pdl, "pdl", pdlAuto, "swag --pdl (0..3); default auto-detects from imports in the generated stub")
 	fs.BoolVar(&cfg.parseInternal, "parse-internal", true, "pass --parseInternal to swag init")
-	fs.BoolVar(&cfg.skipFormat, "skip-format", false, "skip the `swag fmt` step at the end")
+	fs.BoolVar(&cfg.skipFormat, "skip-format", false, "skip the `swag fmt` + gofmt step at the end")
 	fs.Usage = func() {
 		fmt.Fprintln(fs.Output(), "Usage: goswag docs [flags]")
 		fmt.Fprintln(fs.Output())
 		fmt.Fprintln(fs.Output(), "Runs the full swagger generation pipeline:")
 		fmt.Fprintln(fs.Output(), "  1. go run <input>/main.go    (generates the annotated stub)")
 		fmt.Fprintln(fs.Output(), "  2. swag init                 (generates the OpenAPI spec)")
-		fmt.Fprintln(fs.Output(), "  3. swag fmt                  (formats annotations in place)")
+		fmt.Fprintln(fs.Output(), "  3. swag fmt + gofmt          (formats annotations in place)")
 		fmt.Fprintln(fs.Output())
 		fmt.Fprintln(fs.Output(), "Flags:")
 		fs.PrintDefaults()
@@ -157,6 +157,12 @@ func runDocs(args []string) error {
 		fmt.Printf("=====> goswag: running swag fmt on %s\n", cfg.input)
 		if err := run("", "swag", "fmt", "-d", cfg.input); err != nil {
 			return fmt.Errorf("swag fmt failed: %w", err)
+		}
+		// swag fmt indents annotations with a tab after "//", which gofmt rewrites
+		// to a space; normalising here keeps the file stable under editor save.
+		fmt.Printf("=====> goswag: running gofmt on %s\n", cfg.input)
+		if err := run("", "gofmt", "-w", cfg.input); err != nil {
+			return fmt.Errorf("gofmt failed: %w", err)
 		}
 	}
 

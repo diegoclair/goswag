@@ -160,7 +160,7 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder, packagesT
 		}
 
 		if r.FuncName != "" {
-			fmt.Fprintf(s, "func %s() {} //nolint:unused \n", r.FuncName)
+			fmt.Fprintf(s, "func %s() {} //nolint:unused\n", r.FuncName)
 		}
 
 		s.WriteString("\n")

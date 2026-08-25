@@ -546,7 +546,7 @@ func TestWriteRoutes(t *testing.T) {
 					FuncName: "test",
 				},
 			},
-			expectedStringBuilder: "func test() {} //nolint:unused \n\n",
+			expectedStringBuilder: "func test() {} //nolint:unused\n\n",
 		},
 	}
 
@@ -938,5 +938,38 @@ func Test_addPackageToImport(t *testing.T) {
 			addPackageToImport(tt.data, packagesToImport)
 			assert.Equal(t, tt.expectedPkgs, packagesToImport)
 		})
+	}
+}
+
+func TestWriteGroup_noTrailingWhitespace(t *testing.T) {
+	// Editors strip trailing whitespace on save, which would leave the generated file dirty.
+	groups := []Group{{
+		GroupName: "auth",
+		Routes: []Route{{
+			Path:        "/check-email",
+			Method:      "POST",
+			FuncName:    "handleCheckEmail",
+			Summary:     "Check email",
+			Description: "Resolve which form to render",
+			Tags:        []string{"auth"},
+			Accepts:     []string{"json"},
+			Produces:    []string{"json"},
+			Reads:       viewmodelA.LoginResponse{},
+			Returns: []models.ReturnType{
+				{StatusCode: 200, Body: viewmodelA.LoginResponse{}},
+				{StatusCode: 204},
+				{StatusCode: 400, Body: viewmodelB.LoginResponse{}, OverrideStructFields: map[string]any{"data": viewmodelA.LoginResponse{}}},
+			},
+			QueryParams:  []Param{{Name: "q", Description: "query", Required: true}},
+			HeaderParams: []Param{{Name: "X-Id", Description: "header"}},
+			PathParams:   []Param{{Name: "id", Description: "path", Required: true}},
+		}},
+	}}
+
+	var b strings.Builder
+	writeGroup(groups, &b, map[string]bool{}, nil)
+
+	for _, line := range strings.Split(b.String(), "\n") {
+		assert.Equal(t, strings.TrimRight(line, " \t"), line)
 	}
 }
