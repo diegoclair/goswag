@@ -33,7 +33,13 @@ const (
 	// pdlAuto is the sentinel for "detect from the generated goswag.go imports".
 	// Negative because the swag --pdl range is 0..3.
 	pdlAuto = -1
+
+	// defaultOutputTypes mirrors swag's own default so the pipeline is unchanged
+	// for anyone who never touches the flag.
+	defaultOutputTypes = "go,json,yaml"
 )
+
+var supportedOutputTypes = map[string]bool{"go": true, "json": true, "yaml": true, "yml": true}
 
 func main() {
 	if len(os.Args) < 2 {
@@ -61,19 +67,19 @@ func main() {
 type docsConfig struct {
 	input         string
 	output        string
+	outputTypes   string
 	pdl           int
 	parseInternal bool
 	skipFormat    bool
 }
 
-func runDocs(args []string) error {
-	cfg := docsConfig{}
-
+func newDocsFlagSet(cfg *docsConfig) *flag.FlagSet {
 	fs := flag.NewFlagSet("docs", flag.ContinueOnError)
 	fs.StringVar(&cfg.input, "input", "./goswag", "directory containing the main.go that calls GenerateSwagger()")
 	fs.StringVar(&cfg.input, "i", "./goswag", "shorthand for --input")
 	fs.StringVar(&cfg.output, "output", "./docs", "directory where swag will write the OpenAPI files")
 	fs.StringVar(&cfg.output, "o", "./docs", "shorthand for --output")
+	fs.StringVar(&cfg.outputTypes, "output-types", defaultOutputTypes, "comma-separated swag --ot types (go, json, yaml, yml)")
 	fs.IntVar(&cfg.pdl, "pdl", pdlAuto, "swag --pdl (0..3); default auto-detects from imports in the generated stub")
 	fs.BoolVar(&cfg.parseInternal, "parse-internal", true, "pass --parseInternal to swag init")
 	fs.BoolVar(&cfg.skipFormat, "skip-format", false, "skip the `swag fmt` + gofmt step at the end")
@@ -94,7 +100,19 @@ func runDocs(args []string) error {
 		fmt.Fprintln(fs.Output(), "  diegoclair/go_utils referenced in @Failure annotations), --pdl=1 is")
 		fmt.Fprintln(fs.Output(), "  used so swag can resolve those struct definitions. Otherwise it stays")
 		fmt.Fprintln(fs.Output(), "  at 0. Pass --pdl=N explicitly to override.")
+		fmt.Fprintln(fs.Output())
+		fmt.Fprintln(fs.Output(), "Output types:")
+		fmt.Fprintln(fs.Output(), "  --output-types controls which files swag writes. Dropping \"go\" skips the")
+		fmt.Fprintln(fs.Output(), "  generated docs.go, so a project that only serves swagger.json/yaml does not")
+		fmt.Fprintln(fs.Output(), "  need github.com/swaggo/swag as a direct dependency.")
 	}
+
+	return fs
+}
+
+func runDocs(args []string) error {
+	cfg := docsConfig{}
+	fs := newDocsFlagSet(&cfg)
 
 	if err := fs.Parse(args); err != nil {
 		// flag.ContinueOnError returns ErrHelp on -h/--help; that's not a failure.
@@ -103,6 +121,12 @@ func runDocs(args []string) error {
 		}
 		return err
 	}
+
+	normalized, err := normalizeOutputTypes(cfg.outputTypes)
+	if err != nil {
+		return err
+	}
+	cfg.outputTypes = normalized
 
 	mainFile := filepath.Join(cfg.input, "main.go")
 	if _, err := os.Stat(mainFile); err != nil {
@@ -135,10 +159,7 @@ func runDocs(args []string) error {
 		autodetected = true
 	}
 
-	swagArgs := []string{"init", "--pdl", strconv.Itoa(pdl), "-g", mainFile, "-o", cfg.output}
-	if cfg.parseInternal {
-		swagArgs = append(swagArgs, "--parseInternal")
-	}
+	swagArgs := buildSwagArgs(cfg, pdl, mainFile)
 	fmt.Printf("=====> goswag: running swag init -> %s\n", cfg.output)
 	if err := run("", "swag", swagArgs...); err != nil {
 		// swag init's error output is the typical signal a user gets that
@@ -168,6 +189,29 @@ func runDocs(args []string) error {
 
 	fmt.Println("=====> goswag: done")
 	return nil
+}
+
+func buildSwagArgs(cfg docsConfig, pdl int, mainFile string) []string {
+	args := []string{"init", "--pdl", strconv.Itoa(pdl), "-g", mainFile, "-o", cfg.output, "--ot", cfg.outputTypes}
+	if cfg.parseInternal {
+		args = append(args, "--parseInternal")
+	}
+	return args
+}
+
+// normalizeOutputTypes rejects here what swag only logs and then ignores, which
+// would otherwise leave the user with a silently missing file and a zero exit code.
+func normalizeOutputTypes(value string) (string, error) {
+	parts := strings.Split(value, ",")
+	types := make([]string, 0, len(parts))
+	for _, part := range parts {
+		t := strings.ToLower(strings.TrimSpace(part))
+		if !supportedOutputTypes[t] {
+			return "", fmt.Errorf("invalid --output-types value %q: supported types are go, json, yaml, yml", strings.TrimSpace(part))
+		}
+		types = append(types, t)
+	}
+	return strings.Join(types, ","), nil
 }
 
 // detectPDL inspects the generated goswag.go to decide which --pdl level

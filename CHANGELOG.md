@@ -6,6 +6,16 @@ releases see the git history.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.1.0] - 2026-08-30
+
+### Added
+
+- `goswag docs --output-types` forwards swag's `--ot`. Defaults to `go,json,yaml`
+  (swag's own default), so generation is unchanged unless you pass it. Use
+  `--output-types json,yaml` to skip `docs.go` and keep `github.com/swaggo/swag`
+  out of your `go.mod`. Values other than `go`, `json`, `yaml` and `yml` are
+  rejected before swag runs.
+
 ## [v2.0.1] - 2026-08-25
 
 ### Fixed
@@ -73,6 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   hash of the package qualifier, so handlers sharing a short name across
   packages no longer collide in the generated `goswag.go`.
 
+[v2.1.0]: https://github.com/diegoclair/goswag/releases/tag/v2.1.0
 [v2.0.1]: https://github.com/diegoclair/goswag/releases/tag/v2.0.1
 [v2.0.0]: https://github.com/diegoclair/goswag/releases/tag/v2.0.0
 [v1.3.0]: https://github.com/diegoclair/goswag/releases/tag/v1.3.0

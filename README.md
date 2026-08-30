@@ -185,6 +185,14 @@ That single command:
 
 `goswag docs` picks `--pdl` for you by inspecting the imports of the generated stub: `0` if every type comes from your module, `1` if any annotation references a type from an external dependency. The chosen level is printed on each run. Override with `--pdl=N` if you need `2` or `3` (rare).
 
+#### Choosing which files swag writes
+
+`swag init` writes `docs.go`, `swagger.json` and `swagger.yaml`. The `docs.go` file imports `github.com/swaggo/swag`, so it forces that dependency into your `go.mod` even when nothing in your code imports the generated package. If you only serve the spec files, drop `go` from the output types:
+```sh
+goswag docs --output-types json,yaml
+```
+Accepted values are `go`, `json`, `yaml` and `yml`; the default is `go,json,yaml`, which is swag's own default. An unsupported value is rejected before swag runs.
+
 #### Other flags
 
 All paths follow the convention described above; override them with flags if your layout differs:
@@ -204,7 +212,7 @@ docs:
 
 The command produces a `goswag.go` file inside your `goswag` directory containing all handler stubs and annotations, and the OpenAPI files under `./docs`.
 
-**NOTE**: after the first generation, the `doc.go` file in the `docs` folder will import the Swag library. If you haven't used Swag in your project before, run `go mod tidy` to ensure the swag package is included in your `go.mod`.
+**NOTE**: after the first generation, the `docs.go` file in the `docs` folder will import the Swag library. If you haven't used Swag in your project before, run `go mod tidy` to ensure the swag package is included in your `go.mod` — or generate with `--output-types json,yaml` if you don't need it.
 
 #### Updating
 - **CLI:** `go install github.com/diegoclair/goswag/v2/cmd/goswag@latest`
