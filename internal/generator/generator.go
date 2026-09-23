@@ -136,7 +136,7 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder, packagesT
 			addBodyPackageToImport(r.Reads, packagesToImport)
 		}
 
-		for _, param := range r.PathParams {
+		for _, param := range withRoutePathParams(r.Path, r.PathParams) {
 			fmt.Fprintf(s, "// @Param %s path %s %t \"%s\"\n",
 				param.Name, param.ParamType, param.Required, param.Description)
 		}
@@ -156,7 +156,7 @@ func writeRoutes(groupName string, routes []Route, s *strings.Builder, packagesT
 		}
 
 		if r.Path != "" {
-			fmt.Fprintf(s, "// @Router %s [%s]\n", r.Path, strings.ToLower(r.Method))
+			fmt.Fprintf(s, "// @Router %s [%s]\n", openAPIPath(r.Path), strings.ToLower(r.Method))
 		}
 
 		if r.FuncName != "" {

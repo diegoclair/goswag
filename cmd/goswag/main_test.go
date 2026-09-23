@@ -301,3 +301,61 @@ func containsSubstring(haystack, needle string) bool {
 	}
 	return false
 }
+
+func TestDocsDedupeFlag(t *testing.T) {
+	cfg := docsConfig{}
+	fs := newDocsFlagSet(&cfg)
+	if err := fs.Parse(nil); err != nil {
+		t.Fatal(err)
+	}
+	if cfg.dedupe {
+		// The flag rewrites files a project already versions, so nobody gets it
+		// without asking.
+		t.Error("--dedupe should be off unless asked for")
+	}
+
+	cfg = docsConfig{}
+	fs = newDocsFlagSet(&cfg)
+	if err := fs.Parse([]string{"--dedupe"}); err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.dedupe {
+		t.Error("--dedupe did not turn the step on")
+	}
+}
+
+func TestRunDedupe_PointsAtTheMissingOutputType(t *testing.T) {
+	err := runDedupe(t.TempDir())
+	if err == nil {
+		t.Fatal("expected an error when there is no swagger.json to read")
+	}
+	if !containsSubstring(err.Error(), "--output-types") {
+		t.Errorf("error = %q; want it to say which output type is missing", err)
+	}
+}
+
+func TestRunDedupe_RewritesTheSpec(t *testing.T) {
+	dir := t.TempDir()
+	source := filepath.Join("..", "..", "internal", "dedupe", "testdata", "swagger.json")
+
+	spec, err := os.ReadFile(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+	target := filepath.Join(dir, "swagger.json")
+	if err := os.WriteFile(target, spec, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := runDedupe(dir); err != nil {
+		t.Fatal(err)
+	}
+
+	rewritten, err := os.ReadFile(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !containsSubstring(string(rewritten), "#/responses/BadRequest") {
+		t.Error("the rewritten spec does not point at the shared responses")
+	}
+}

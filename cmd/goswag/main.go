@@ -25,6 +25,8 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
+
+	"github.com/diegoclair/goswag/v2/internal/dedupe"
 )
 
 const (
@@ -71,6 +73,7 @@ type docsConfig struct {
 	pdl           int
 	parseInternal bool
 	skipFormat    bool
+	dedupe        bool
 }
 
 func newDocsFlagSet(cfg *docsConfig) *flag.FlagSet {
@@ -83,6 +86,7 @@ func newDocsFlagSet(cfg *docsConfig) *flag.FlagSet {
 	fs.IntVar(&cfg.pdl, "pdl", pdlAuto, "swag --pdl (0..3); default auto-detects from imports in the generated stub")
 	fs.BoolVar(&cfg.parseInternal, "parse-internal", true, "pass --parseInternal to swag init")
 	fs.BoolVar(&cfg.skipFormat, "skip-format", false, "skip the `swag fmt` + gofmt step at the end")
+	fs.BoolVar(&cfg.dedupe, "dedupe", false, "factor responses and parameters repeated across operations into #/responses and #/parameters")
 	fs.Usage = func() {
 		fmt.Fprintln(fs.Output(), "Usage: goswag docs [flags]")
 		fmt.Fprintln(fs.Output())
@@ -105,6 +109,14 @@ func newDocsFlagSet(cfg *docsConfig) *flag.FlagSet {
 		fmt.Fprintln(fs.Output(), "  --output-types controls which files swag writes. Dropping \"go\" skips the")
 		fmt.Fprintln(fs.Output(), "  generated docs.go, so a project that only serves swagger.json/yaml does not")
 		fmt.Fprintln(fs.Output(), "  need github.com/swaggo/swag as a direct dependency.")
+		fmt.Fprintln(fs.Output())
+		fmt.Fprintln(fs.Output(), "Dedupe:")
+		fmt.Fprintln(fs.Output(), "  swag restates every response and parameter inline on each operation, so a")
+		fmt.Fprintln(fs.Output(), "  set of default error responses is copied once per route. --dedupe moves the")
+		fmt.Fprintln(fs.Output(), "  ones that repeat into the reusable objects OpenAPI 2.0 already defines and")
+		fmt.Fprintln(fs.Output(), "  points every operation at them, which leaves the spec smaller without")
+		fmt.Fprintln(fs.Output(), "  dropping anything it said. It needs \"json\" among the output types, and")
+		fmt.Fprintln(fs.Output(), "  running it twice over one spec changes nothing the second time.")
 	}
 
 	return fs
@@ -174,6 +186,12 @@ func runDocs(args []string) error {
 		return fmt.Errorf("swag init failed: %w", err)
 	}
 
+	if cfg.dedupe {
+		if err := runDedupe(cfg.output); err != nil {
+			return err
+		}
+	}
+
 	if !cfg.skipFormat {
 		fmt.Printf("=====> goswag: running swag fmt on %s\n", cfg.input)
 		if err := run("", "swag", "fmt", "-d", cfg.input); err != nil {
@@ -188,6 +206,27 @@ func runDocs(args []string) error {
 	}
 
 	fmt.Println("=====> goswag: done")
+	return nil
+}
+
+func runDedupe(output string) error {
+	fmt.Printf("=====> goswag: deduping the spec in %s\n", output)
+
+	stats, err := dedupe.Files(output)
+	if err != nil {
+		if errors.Is(err, dedupe.ErrNoJSON) {
+			return fmt.Errorf(`--dedupe reads the JSON document: add "json" to --output-types (%w)`, err)
+		}
+		return fmt.Errorf("dedupe failed: %w", err)
+	}
+
+	if stats.Empty() {
+		fmt.Println("=====> goswag: nothing repeated often enough to factor out")
+		return nil
+	}
+
+	fmt.Printf("=====> goswag: factored %d responses and %d parameters into reusable objects\n",
+		stats.Responses, stats.Parameters)
 	return nil
 }
 

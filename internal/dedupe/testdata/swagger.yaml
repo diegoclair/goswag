@@ -1,0 +1,377 @@
+basePath: /
+definitions:
+  vm.CreateProductInput:
+    properties:
+      name:
+        type: string
+    type: object
+  vm.ErrorResponse:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  vm.Listing:
+    properties:
+      marketplace:
+        type: string
+      uuid:
+        type: string
+    type: object
+  vm.Product:
+    properties:
+      name:
+        type: string
+      uuid:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  title: Probe API
+  version: "1.0"
+paths:
+  /listings/:
+    get:
+      description: List listings
+      parameters:
+      - description: Which marketplace
+        in: query
+        name: marketplace
+        type: string
+      - description: User access token
+        in: header
+        name: user-token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vm.Listing'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+      summary: List listings
+      tags:
+      - /listings
+  /listings/{uuid}:
+    get:
+      description: Read one listing
+      parameters:
+      - description: The listing's uuid
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: User access token
+        in: header
+        name: user-token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vm.Listing'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+      summary: Read one listing
+      tags:
+      - /listings
+    put:
+      consumes:
+      - application/json
+      description: Update a listing
+      parameters:
+      - description: Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/vm.CreateProductInput'
+      - description: The listing's uuid
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: User access token
+        in: header
+        name: user-token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vm.Listing'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+      summary: Update a listing
+      tags:
+      - /listings
+  /listings/{uuid}/history/{event_id}:
+    get:
+      description: Read one listing event
+      parameters:
+      - description: uuid
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: event_id
+        in: path
+        name: event_id
+        required: true
+        type: string
+      - description: User access token
+        in: header
+        name: user-token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vm.Listing'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+      summary: Read one listing event
+      tags:
+      - /listings
+  /products/:
+    get:
+      description: List products
+      parameters:
+      - description: Page, 1-based
+        in: query
+        name: page
+        type: number
+      - description: User access token
+        in: header
+        name: user-token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vm.Product'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+      summary: List products
+      tags:
+      - /products
+    post:
+      consumes:
+      - application/json
+      description: Create a product
+      parameters:
+      - description: Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/vm.CreateProductInput'
+      - description: User access token
+        in: header
+        name: user-token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/vm.Product'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+      summary: Create a product
+      tags:
+      - /products
+  /products/{uuid}:
+    delete:
+      description: Delete a product
+      parameters:
+      - description: The product's uuid
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: User access token
+        in: header
+        name: user-token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+      summary: Delete a product
+      tags:
+      - /products
+    get:
+      description: Read one product
+      parameters:
+      - description: The product's uuid
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: User access token
+        in: header
+        name: user-token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vm.Product'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+      summary: Read one product
+      tags:
+      - /products
+    put:
+      consumes:
+      - application/json
+      description: Rename a product
+      parameters:
+      - description: Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/vm.CreateProductInput'
+      - description: The product's uuid
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: User access token
+        in: header
+        name: user-token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/vm.Product'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/vm.ErrorResponse'
+      summary: Rename a product
+      tags:
+      - /products
+schemes:
+- http
+swagger: "2.0"

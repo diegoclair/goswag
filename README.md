@@ -128,7 +128,23 @@ type ReturnType struct {
 ```
 - `QueryParam`: Defines the query parameters of the route and specifies if they are required.
 - `HeaderParam`: Defines the header parameters of the route and specifies if they are required.
-- `PathParam`: Defines the path parameters of the route and specifies if they are required.
+- `PathParam`: Defines the path parameters of the route and specifies if they are required. Use it to give the parameter a description — you never have to restate the parameter itself, since the route already declares it.
+
+#### Path parameters
+
+Keep writing routes the way Echo and Gin read them — `/users/:id`, `/static/*filepath`. OpenAPI spells the same thing `/users/{id}`, and goswag translates on the way to the annotation, so the generated spec is the one a consumer can actually load:
+
+```go
+g.GET("/users/:id", handler).
+    Summary("Read one user").
+    PathParam("id", "The user's id", goswag.StringType, true)
+```
+```
+@Param  id path string true "The user's id"
+@Router /users/{id} [get]
+```
+
+A parameter the path declares is required by the spec whether or not you describe it, so goswag writes the ones you left out rather than emitting a document that no validator accepts. `PathParam` is how you give it a description; without it the parameter is still there, named after the path segment.
 
 ### 4 - Generating your Swagger Documentation
 The method used to instantiate your router, either `NewEcho()` or `NewGin()` includes a function called `GenerateSwagger()`.  
@@ -192,6 +208,33 @@ That single command:
 goswag docs --output-types json,yaml
 ```
 Accepted values are `go`, `json`, `yaml` and `yml`; the default is `go,json,yaml`, which is swag's own default. An unsupported value is rejected before swag runs.
+
+#### Shrinking a repetitive spec with `--dedupe`
+
+swag writes every response and every parameter inline, on each operation. That is fine for a handful of routes, but a [default response set](#default-response-for-all-routes) is copied once per route, so the same seven error responses can account for a third of the file on a large API.
+
+OpenAPI 2.0 already has somewhere to put them. `--dedupe` moves what repeats into the spec's own reusable objects and points each operation at them:
+```sh
+goswag docs --dedupe
+```
+```jsonc
+// before — restated on all 142 operations
+"400": { "description": "Bad Request", "schema": { "$ref": "#/definitions/api.ErrorResponse" } },
+
+// after
+"400": { "$ref": "#/responses/BadRequest" },
+```
+
+On a 124-route API this took `swagger.json` from 16,770 to 13,025 lines (629 KB → 466 KB) while describing exactly the same API — every operation keeps the same parameters and responses once the refs are resolved.
+
+Worth knowing:
+
+- It needs `json` among the `--output-types`; that document is what the step reads. `swagger.yaml` and `docs.go` are rewritten from it, so the three never disagree.
+- Only things repeated across at least three operations are moved. Below that a reusable object costs about what the copies did.
+- Names come from what the object means — `#/responses/NotFound`, `#/parameters/UserTokenHeader` — and fall back to what a response carries when two share a description (`OKProduct`, `OKListing`).
+- Running it twice over one spec changes nothing the second time, so it is safe in a `make docs` you run on every build.
+
+It is off by default: it rewrites files your project versions, and the resulting spec, while equivalent, is not byte-identical to what swag alone would have written.
 
 #### Other flags
 
@@ -258,6 +301,8 @@ func handleLogout() {} //nolint:unused
 //	@Router			/auth/login [post]
 func handleLogin() {} //nolint:unused 
 ```
+
+Every route restates the whole set, in the stub and again in the generated spec. Once you have enough routes for that to be noticeable, [`--dedupe`](#shrinking-a-repetitive-spec-with---dedupe) collapses it in the spec.
 
 ## Handlers with the same name in different packages
 
