@@ -209,6 +209,14 @@ goswag docs --output-types json,yaml
 ```
 Accepted values are `go`, `json`, `yaml` and `yml`; the default is `go,json,yaml`, which is swag's own default. An unsupported value is rejected before swag runs.
 
+#### Why a file appears next to your `go.mod` while swag runs
+
+swag asks `go list` for the import path of the directory it searches. In the layout most Go services use — everything under `cmd/`, `internal/`, `pkg/`, nothing at the module root — that call fails, swag falls back to relative import paths, and then reads each of your packages a second time under its real path. It takes the two readings for two different packages, so every type looks like it collides with itself, and the spec comes back with `github_com_you_yourmodule_internal_billing_viewmodel.Invoice` where `viewmodel.Invoice` would have done. On a 124-route API that was 238 of 241 type names.
+
+`goswag docs` writes a one-line `goswag_module_anchor.go` at the module root when there is no Go file there, and deletes it as soon as swag is done — including when the run fails or is interrupted. If your module root already has a Go file of its own, nothing is written.
+
+You only ever see it if a run is killed in a way no cleanup can survive, and the file says in its own comment where it came from. It is safe to delete.
+
 #### Shrinking a repetitive spec with `--dedupe`
 
 swag writes every response and every parameter inline, on each operation. That is fine for a handful of routes, but a [default response set](#default-response-for-all-routes) is copied once per route, so the same seven error responses can account for a third of the file on a large API.

@@ -171,6 +171,14 @@ func runDocs(args []string) error {
 		autodetected = true
 	}
 
+	// swag searches the working directory, so that is the one go list has to be
+	// able to name.
+	cleanup, err := anchorModuleRoot(".")
+	if err != nil {
+		return err
+	}
+	defer cleanup()
+
 	swagArgs := buildSwagArgs(cfg, pdl, mainFile)
 	fmt.Printf("=====> goswag: running swag init -> %s\n", cfg.output)
 	if err := run("", "swag", swagArgs...); err != nil {
@@ -185,6 +193,7 @@ func runDocs(args []string) error {
 		}
 		return fmt.Errorf("swag init failed: %w", err)
 	}
+	cleanup()
 
 	if cfg.dedupe {
 		if err := runDedupe(cfg.output); err != nil {

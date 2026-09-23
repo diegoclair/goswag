@@ -1,6 +1,8 @@
 package main
 
 import (
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"testing"
@@ -357,5 +359,106 @@ func TestRunDedupe_RewritesTheSpec(t *testing.T) {
 	}
 	if !containsSubstring(string(rewritten), "#/responses/BadRequest") {
 		t.Error("the rewritten spec does not point at the shared responses")
+	}
+}
+
+func TestAnchorModuleRoot_WritesWhereGoListCannotName(t *testing.T) {
+	dir := t.TempDir()
+	// The shape this exists for: a module root that holds the whole project in
+	// subdirectories and carries no Go file of its own.
+	if err := os.MkdirAll(filepath.Join(dir, "internal", "service"), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "internal", "service", "s.go"), []byte("package service\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	// A directory is not a Go file, whatever it is called.
+	if err := os.MkdirAll(filepath.Join(dir, "vendored.go"), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"go.mod", "README.md", "Makefile"} {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte("x\n"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	cleanup, err := anchorModuleRoot(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	anchor := filepath.Join(dir, anchorFile)
+	if _, err := os.Stat(anchor); err != nil {
+		t.Fatalf("no anchor in a directory with no Go file: %v", err)
+	}
+
+	cleanup()
+	if _, err := os.Stat(anchor); !os.IsNotExist(err) {
+		t.Error("the anchor outlived the run it was written for")
+	}
+}
+
+func TestAnchorModuleRoot_LeavesAPopulatedDirectoryAlone(t *testing.T) {
+	dir := t.TempDir()
+	existing := filepath.Join(dir, "main.go")
+	if err := os.WriteFile(existing, []byte("package main\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	cleanup, err := anchorModuleRoot(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+
+	if _, err := os.Stat(filepath.Join(dir, anchorFile)); !os.IsNotExist(err) {
+		t.Error("wrote an anchor where go list already had a package to name")
+	}
+
+	cleanup()
+	if _, err := os.Stat(existing); err != nil {
+		// Cleanup must never reach a file it did not write.
+		t.Errorf("cleanup removed a file that was already there: %v", err)
+	}
+}
+
+func TestAnchorModuleRoot_CleanupIsSafeToRepeat(t *testing.T) {
+	dir := t.TempDir()
+
+	cleanup, err := anchorModuleRoot(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cleanup()
+	// runDocs calls it explicitly and again through defer.
+	cleanup()
+
+	if err := os.WriteFile(filepath.Join(dir, anchorFile), []byte("package x\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cleanup()
+	if _, err := os.Stat(filepath.Join(dir, anchorFile)); err != nil {
+		t.Error("a spent cleanup deleted a file written after it ran")
+	}
+}
+
+func TestAnchorModuleRoot_ReportsAMissingDirectory(t *testing.T) {
+	if _, err := anchorModuleRoot(filepath.Join(t.TempDir(), "missing")); err == nil {
+		t.Error("expected an error for a directory that is not there")
+	}
+}
+
+func TestAnchorSourceIsAValidGoFile(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, anchorFile)
+	if err := os.WriteFile(path, []byte(anchorSource), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	// go list only has to parse it; the point is that the directory stops being
+	// one with no Go files at all.
+	if _, err := parser.ParseFile(token.NewFileSet(), path, nil, parser.PackageClauseOnly); err != nil {
+		t.Errorf("the anchor does not parse as Go: %v", err)
 	}
 }

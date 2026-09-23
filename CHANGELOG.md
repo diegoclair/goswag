@@ -6,6 +6,21 @@ releases see the git history.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.2.1] - 2026-09-23
+
+### Fixed
+
+- Types keep their short names in the spec. swag asks `go list` for the import
+  path of the directory it searches; in the layout most Go services use, with
+  nothing at the module root, that call fails and swag falls back to relative
+  import paths, reads every package a second time under its real path, and takes
+  the two readings for a collision. Every type was then qualified with its full
+  package path — on a 124-route API, 238 of 241 of them. `goswag docs` now gives
+  swag a module root it can name, and removes what it wrote once swag is done,
+  including on failure and on an interrupt. A module root that already holds a Go
+  file is left alone. Regenerating shortens most `$ref`s; the names that stay
+  qualified are the ones that genuinely collide.
+
 ## [v2.2.0] - 2026-09-23
 
 Regenerating after this release rewrites every route that takes a path
@@ -113,6 +128,7 @@ moves.
   hash of the package qualifier, so handlers sharing a short name across
   packages no longer collide in the generated `goswag.go`.
 
+[v2.2.1]: https://github.com/diegoclair/goswag/releases/tag/v2.2.1
 [v2.2.0]: https://github.com/diegoclair/goswag/releases/tag/v2.2.0
 [v2.1.0]: https://github.com/diegoclair/goswag/releases/tag/v2.1.0
 [v2.0.1]: https://github.com/diegoclair/goswag/releases/tag/v2.0.1
