@@ -2,6 +2,7 @@ package generator
 
 import (
 	"io"
+	"os"
 	"strings"
 	"testing"
 
@@ -972,4 +973,64 @@ func TestWriteGroup_noTrailingWhitespace(t *testing.T) {
 	for _, line := range strings.Split(b.String(), "\n") {
 		assert.Equal(t, strings.TrimRight(line, " \t"), line)
 	}
+}
+
+func TestGenerateSwagger_sameHandlerOnSeveralRoutes(t *testing.T) {
+	newRoutes := func() ([]Route, []Group) {
+		routes := []Route{
+			{Path: "/health", Method: "GET", FuncName: "handleHealth_1a2b3c4d"},
+			{Path: "/list", Method: "GET", FuncName: "handleList_657b9a7f"},
+		}
+		groups := []Group{
+			{GroupName: "conversations", Routes: []Route{
+				{Path: "conversations/", Method: "GET", FuncName: "handleList_657b9a7f"},
+				{Path: "conversations/", Method: "POST", FuncName: "handleList_657b9a7f"},
+			}},
+			{GroupName: "mobile", Groups: []Group{{GroupName: "v1", Routes: []Route{
+				{Path: "mobile/v1/conversations/", Method: "GET", FuncName: "handleList_657b9a7f"},
+				// A route registered twice verbatim still needs a stub of its own.
+				{Path: "mobile/v1/conversations/", Method: "GET", FuncName: "handleList_657b9a7f"},
+			}}}},
+		}
+		return routes, groups
+	}
+
+	routes, groups := newRoutes()
+	content := generateInTempDir(t, routes, groups)
+
+	assert.Equal(t, 1, strings.Count(content, "func handleHealth_1a2b3c4d()"),
+		"a handler serving one route keeps its current name")
+	assert.Equal(t, 5, strings.Count(content, "func handleList_657b9a7f_"))
+
+	routes, groups = newRoutes()
+	assert.Equal(t, content, generateInTempDir(t, routes, groups), "names must not drift between runs")
+}
+
+func TestDisambiguateFuncNames_followsTheRouteNotTheOrder(t *testing.T) {
+	a := Route{Path: "/a", Method: "GET", FuncName: "h"}
+	b := Route{Path: "/b", Method: "GET", FuncName: "h"}
+
+	forward := []Route{a, b}
+	disambiguateFuncNames(forward, nil)
+
+	reversed := []Route{b, a}
+	disambiguateFuncNames(reversed, nil)
+
+	assert.Equal(t, forward[0].FuncName, reversed[1].FuncName)
+	assert.Equal(t, forward[1].FuncName, reversed[0].FuncName)
+	assert.NotEqual(t, forward[0].FuncName, forward[1].FuncName)
+}
+
+func generateInTempDir(t *testing.T, routes []Route, groups []Group) string {
+	t.Helper()
+	t.Chdir(t.TempDir())
+
+	GenerateSwagger(routes, groups, nil)
+	testutil.TypeCheckGoFile(t, fileName)
+
+	content, err := os.ReadFile(fileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(content)
 }

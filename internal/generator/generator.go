@@ -1,6 +1,8 @@
 package generator
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"log"
@@ -55,6 +57,7 @@ func GenerateSwagger(routes []Route, groups []Group, defaultResponses []models.R
 	log.Printf("Generating %s file...", fileName)
 
 	routes, groups = addDefaultResponses(routes, groups, defaultResponses)
+	disambiguateFuncNames(routes, groups)
 
 	ambiguous := ambiguousTypeNames(routes, groups)
 
@@ -92,6 +95,58 @@ func addDefaultResponses(routes []Route, groups []Group, defaultResponses []mode
 	}
 
 	return routes, groups
+}
+
+// One handler can serve several routes; only shared names change, so a single-route
+// stub keeps the name users already have in their diffs.
+func disambiguateFuncNames(routes []Route, groups []Group) {
+	var all []*Route
+
+	var walk func(routes []Route, groups []Group)
+	walk = func(routes []Route, groups []Group) {
+		for i := range routes {
+			if routes[i].FuncName != "" {
+				all = append(all, &routes[i])
+			}
+		}
+
+		for i := range groups {
+			walk(groups[i].Routes, groups[i].Groups)
+		}
+	}
+	walk(routes, groups)
+
+	count := map[string]int{}
+	for _, r := range all {
+		count[r.FuncName]++
+	}
+
+	taken := map[string]bool{}
+	for name := range count {
+		taken[name] = true
+	}
+
+	for _, r := range all {
+		if count[r.FuncName] < 2 {
+			continue
+		}
+
+		// Hashing the route rather than a counter keeps each name tied to its route,
+		// so reordering registrations does not rename every stub.
+		key := r.Method + " " + r.Path
+		name := r.FuncName + "_" + shortHash(key)
+		for n := 2; taken[name]; n++ {
+			name = r.FuncName + "_" + shortHash(fmt.Sprintf("%s#%d", key, n))
+		}
+
+		taken[name] = true
+		r.FuncName = name
+	}
+}
+
+func shortHash(s string) string {
+	h := sha1.Sum([]byte(s))
+	return hex.EncodeToString(h[:4])
 }
 
 func writeFileContent(file io.Writer, content string, packagesToImport map[string]bool) {

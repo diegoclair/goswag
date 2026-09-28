@@ -6,6 +6,19 @@ releases see the git history.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.2.2] - 2026-09-28
+
+### Fixed
+
+- One handler registered on several routes no longer breaks the build of
+  `goswag.go` with "redeclared in this block". The stub was named after the
+  handler alone, so every route it served declared the same function; the same
+  happened to method values taken through an interface, which are named after
+  the interface rather than the concrete type. Each of those routes now gets its
+  own stub, named from its method and path, stable between runs and independent
+  of registration order. A handler serving a single route keeps the name it has
+  today, so regenerating changes nothing for projects that already built.
+
 ## [v2.2.1] - 2026-09-23
 
 ### Fixed
@@ -128,6 +141,7 @@ moves.
   hash of the package qualifier, so handlers sharing a short name across
   packages no longer collide in the generated `goswag.go`.
 
+[v2.2.2]: https://github.com/diegoclair/goswag/releases/tag/v2.2.2
 [v2.2.1]: https://github.com/diegoclair/goswag/releases/tag/v2.2.1
 [v2.2.0]: https://github.com/diegoclair/goswag/releases/tag/v2.2.0
 [v2.1.0]: https://github.com/diegoclair/goswag/releases/tag/v2.1.0

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/diegoclair/goswag/v2/internal/generator"
+	"github.com/diegoclair/goswag/v2/internal/generator/testutil"
 	"github.com/diegoclair/goswag/v2/models"
 	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
@@ -1067,4 +1068,39 @@ func assertHandlerFuncName(t *testing.T, routes []*echoRoute) {
 	require.Len(t, routes, 1)
 	assert.True(t, strings.HasPrefix(routes[0].Route.FuncName, "namedHandler_"),
 		"FuncName = %q, want handler-derived name", routes[0].Route.FuncName)
+}
+
+type conversationHandler struct{}
+
+func (h *conversationHandler) handleList(c *echo.Context) error { return nil }
+
+type lister interface {
+	handleList(c *echo.Context) error
+}
+
+type webLister struct{}
+
+func (webLister) handleList(c *echo.Context) error { return nil }
+
+type appLister struct{}
+
+func (appLister) handleList(c *echo.Context) error { return nil }
+
+func TestGenerateSwagger_sameHandlerOnSeveralRoutesCompiles(t *testing.T) {
+	t.Chdir(t.TempDir())
+	s := NewEcho()
+
+	h := &conversationHandler{}
+	s.Group("conversations").GET("/", h.handleList).Summary("List")
+	s.Group("mobile").GET("/conversations/", h.handleList).Summary("List")
+
+	// A method value taken through an interface is named after the interface, so
+	// distinct concrete types behind it yield the same handler name.
+	var web, app lister = webLister{}, appLister{}
+	s.GET("/web/lists", web.handleList)
+	s.GET("/app/lists", app.handleList)
+	require.Equal(t, s.routes[0].FuncName, s.routes[1].FuncName)
+
+	s.GenerateSwagger()
+	testutil.TypeCheckGoFile(t, "goswag.go")
 }

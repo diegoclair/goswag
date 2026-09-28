@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/diegoclair/goswag/v2/internal/generator"
+	"github.com/diegoclair/goswag/v2/internal/generator/testutil"
 	"github.com/diegoclair/goswag/v2/models"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -722,4 +723,39 @@ func TestGinRoute_PathParam(t *testing.T) {
 		assert.NotNil(t, got)
 		assert.Equal(t, []generator.Param{{Name: "test", Description: "test", ParamType: "test", Required: true}}, g.Route.PathParams)
 	})
+}
+
+type conversationHandler struct{}
+
+func (h *conversationHandler) handleList(c *gin.Context) {}
+
+type lister interface {
+	handleList(c *gin.Context)
+}
+
+type webLister struct{}
+
+func (webLister) handleList(c *gin.Context) {}
+
+type appLister struct{}
+
+func (appLister) handleList(c *gin.Context) {}
+
+func TestGenerateSwagger_sameHandlerOnSeveralRoutesCompiles(t *testing.T) {
+	t.Chdir(t.TempDir())
+	s := NewGin(gin.New())
+
+	h := &conversationHandler{}
+	s.Group("conversations").GET("/", h.handleList).Summary("List")
+	s.Group("mobile").GET("/conversations/", h.handleList).Summary("List")
+
+	// A method value taken through an interface is named after the interface, so
+	// distinct concrete types behind it yield the same handler name.
+	var web, app lister = webLister{}, appLister{}
+	s.GET("/web/lists", web.handleList)
+	s.GET("/app/lists", app.handleList)
+	assert.Equal(t, s.routes[0].FuncName, s.routes[1].FuncName)
+
+	s.GenerateSwagger()
+	testutil.TypeCheckGoFile(t, "goswag.go")
 }
